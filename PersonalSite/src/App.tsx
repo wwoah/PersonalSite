@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import LoadingScreen from "./components/LoadingScreen";
 
 // Lazy-load each page so the initial bundle stays lean.
 // The arcade and its games only download when the user navigates there.
@@ -10,7 +11,7 @@ const GamePlayer = lazy(() => import("./pages/Arcade/GamePlayer"));
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<div style={{ padding: "2rem", color: "#cadf9e", fontFamily: "monospace" }}>LOADING…</div>}>
+      <Suspense fallback={<LoadingScreen />}>
         <Routes>
           <Route path="/" element={<FrontPage />} />
           <Route path="/arcade" element={<ArcadeHome />} />
