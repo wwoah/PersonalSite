@@ -1,0 +1,442 @@
+/* ──────────────────────────────────────────────────────────────────
+   ARCADE — CRT/neon dialect of the same palette as the resume
+   ────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+.arcade-root,
+.game-player-root {
+  /* Inherit palette */
+  --charcoal-brown: #313628;
+  --charcoal: #595358;
+  --grey-olive: #857f74;
+  --ash-grey: #a4ac96;
+  --tea-green: #cadf9e;
+
+  --bg: #1a1d14;            /* darker than the resume — like a dim arcade */
+  --bg-cabinet: #2a2e22;
+  --bg-screen: #0a0d06;
+  --fg: var(--tea-green);
+  --fg-muted: var(--ash-grey);
+  --rule: rgba(202, 223, 158, 0.2);
+
+  --pixel: 'Press Start 2P', ui-monospace, monospace;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.arcade-root * { box-sizing: border-box; }
+.game-player-root * { box-sizing: border-box; }
+
+/* ──────────────────────────────────────────────────────────────────
+   CRT effect layers — full-viewport overlays
+   ────────────────────────────────────────────────────────────────── */
+.crt-scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.15) 3px,
+    rgba(0, 0, 0, 0.15) 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+.crt-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 199;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   HEADER
+   ────────────────────────────────────────────────────────────────── */
+.arcade-header {
+  padding: 3rem 6vw 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.arcade-marquee {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+  text-align: left;
+  display: inline-block;
+  margin-bottom: 3rem;
+  letter-spacing: 0.05em;
+}
+.arcade-marquee-line { margin: 0.2rem 0; }
+.insert-coin { color: var(--tea-green); }
+
+.arcade-title {
+  font-family: var(--pixel);
+  font-size: clamp(1.75rem, 6.5vw, 4.5rem);   /* was 2rem / 7vw / 5.4rem */
+  letter-spacing: 0.05em;
+  margin: 0 0 1.5rem;
+  color: var(--tea-green);
+  line-height: 1;
+  padding: 0 0.2em;                            /* room for shadows */
+  text-shadow:
+    -2px 0 0 rgba(255, 80, 80, 0.6),
+    2px 0 0 rgba(80, 200, 255, 0.5),
+    0 0 20px rgba(202, 223, 158, 0.5),
+    0 0 40px rgba(202, 223, 158, 0.3);
+}
+.arcade-title-char {
+  display: inline-block;
+}
+
+
+.arcade-subtitle {
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.05em;
+}
+
+.arcade-subtitle kbd {
+  font-family: var(--mono);
+  background: var(--bg-cabinet);
+  border: 1px solid var(--rule);
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  color: var(--tea-green);
+  font-size: 0.75rem;
+}
+
+.back-to-resume {
+  display: inline-block;
+  margin-top: 2rem;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.2rem;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.back-to-resume:hover {
+  color: var(--tea-green);
+  border-color: var(--tea-green);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CABINET GRID
+   ────────────────────────────────────────────────────────────────── */
+.cabinet-grid {
+  padding: 2rem 6vw 6rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  perspective: 1200px;
+  position: relative;
+  z-index: 2;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CABINET — a single arcade unit
+   ────────────────────────────────────────────────────────────────── */
+.cabinet {
+  background: var(--bg-cabinet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  /* The accent color flows in from each game's metadata */
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.3),
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Top "marquee" strip on the cabinet */
+.cabinet::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 20%;
+  right: 20%;
+  height: 6px;
+  background: var(--cabinet-accent);
+  border-radius: 0 0 4px 4px;
+  opacity: 0.4;
+  transition: opacity 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cabinet.is-playable {
+  cursor: pointer;
+}
+
+.cabinet.is-playable:hover {
+  transform: translateY(-6px);
+  border-color: var(--cabinet-accent);
+  box-shadow:
+    0 0 0 1px var(--cabinet-accent),
+    0 30px 60px rgba(0, 0, 0, 0.5),
+    0 0 40px color-mix(in srgb, var(--cabinet-accent) 30%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.cabinet.is-playable:hover::before {
+  opacity: 1;
+  box-shadow: 0 0 20px var(--cabinet-accent);
+}
+
+.cabinet.is-coming-soon {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CABINET SCREEN — the fake gameplay preview
+   ────────────────────────────────────────────────────────────────── */
+.cabinet-screen {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: var(--bg-screen);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 0 30px rgba(0, 0, 0, 0.8),
+    inset 0 0 8px color-mix(in srgb, var(--cabinet-accent) 20%, transparent);
+}
+
+/* Faint dot grid inside the screen — feels like an old CRT */
+.cabinet-screen-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(color-mix(in srgb, var(--cabinet-accent) 30%, transparent) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.3;
+}
+
+/* Soft glow at the bottom of the screen */
+.cabinet-screen-glow {
+  position: absolute;
+  inset: 50% 0 0 0;
+  background: radial-gradient(
+    ellipse at bottom,
+    color-mix(in srgb, var(--cabinet-accent) 30%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.cabinet-screen-title {
+  font-family: var(--pixel);
+  font-size: clamp(0.7rem, 1.5vw, 1.1rem);
+  color: var(--cabinet-accent);
+  text-shadow:
+    0 0 10px var(--cabinet-accent),
+    -1px 0 0 rgba(255, 80, 80, 0.5),
+    1px 0 0 rgba(80, 200, 255, 0.5);
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.cabinet-coming-soon {
+  position: absolute;
+  bottom: 1rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.2em;
+  z-index: 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CABINET PANEL — the info below the screen
+   ────────────────────────────────────────────────────────────────── */
+.cabinet-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.25rem;
+}
+
+.cabinet-panel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.08em;
+}
+
+.cabinet-difficulty {
+  display: inline-flex;
+  gap: 4px;
+}
+.pip {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--charcoal);
+  border: 1px solid var(--rule);
+}
+.pip-on {
+  background: var(--cabinet-accent);
+  box-shadow: 0 0 6px var(--cabinet-accent);
+  border-color: var(--cabinet-accent);
+}
+
+.cabinet-tagline {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  color: var(--fg);
+  margin: 0.25rem 0;
+  line-height: 1.4;
+}
+
+.cabinet-controls {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--fg-muted);
+}
+.cabinet-controls li::before {
+  content: '› ';
+  color: var(--cabinet-accent);
+}
+
+.cabinet-cta {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--rule);
+  font-family: var(--pixel);
+  font-size: 0.65rem;
+  color: var(--cabinet-accent);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+.cabinet.is-coming-soon .cabinet-cta {
+  color: var(--fg-muted);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   FOOTER
+   ────────────────────────────────────────────────────────────────── */
+.arcade-footer {
+  padding: 2rem 6vw 3rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.05em;
+  border-top: 1px solid var(--rule);
+  margin-top: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 600px) {
+  .arcade-footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   GAME PLAYER (the wrapper for an actual playing game)
+   ────────────────────────────────────────────────────────────────── */
+.game-player-root {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-player-chrome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--rule);
+  background: var(--bg-cabinet);
+  font-family: var(--pixel);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  position: relative;
+  z-index: 2;
+}
+
+.chrome-back {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--fg-muted);
+  font-family: var(--pixel);
+  font-size: 0.7rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.2s ease;
+}
+.chrome-back:hover {
+  color: var(--cabinet-accent);
+  border-color: var(--cabinet-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--cabinet-accent) 40%, transparent);
+}
+
+.chrome-title {
+  color: var(--cabinet-accent);
+  text-shadow: 0 0 10px var(--cabinet-accent);
+}
+
+.chrome-score {
+  color: var(--fg-muted);
+}
+
+.game-player-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+.game-loading {
+  font-family: var(--pixel);
+  font-size: 1rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.1em;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
