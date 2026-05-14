@@ -103,25 +103,33 @@
 }
 .boot-line { margin: 0.25rem 0; }
 .boot-output { color: var(--fg-dim); padding-left: 1.5rem; }
-.prompt { color: var(--accent); margin-right: 0.75rem; }
+.prompt {
+  color: var(--accent);
+  margin-right: 0.75rem;
+  text-shadow: 0 0 8px rgba(202, 223, 158, 0.4);
+}
 
 .hero-name {
   font-family: var(--display);
   font-weight: 400;
   font-style: italic;
-  font-size: clamp(3rem, 12vw, 11rem);   /* was clamp(3.5rem, 14vw, 14rem) */
+  font-size: clamp(3rem, 12vw, 11rem);
   line-height: 0.9;
-  letter-spacing: -0.03em;                /* was -0.04em — slightly less aggressive */
+  letter-spacing: -0.03em;
   color: var(--fg);
   margin: 0;
   font-variation-settings: "SOFT" 50, "WONK" 1;
-  padding-right: 0.25em;                  /* was 0.2em */
-  word-break: keep-all;
+  padding-right: 0.15em;        /* room for italic overhang of the cursor */
 }
-.name-tail {
+
+/* Words stay together as wrapping units; the space between words is a real
+   text node in the parent, so the browser sizes it from the font (not a
+   collapsed inline-block) and can break the line cleanly when it has to. */
+.name-word {
   display: inline-block;
   white-space: nowrap;
 }
+
 .name-char {
   display: inline-block;
   will-change: transform;
@@ -131,12 +139,11 @@
   display: inline-block;
   color: var(--accent);
   font-style: normal;
-  margin-left: 0.1em;
-  white-space: nowrap;      /* keep cursor itself unsplittable */
-}
-
-.name-char:last-of-type {
+  margin-left: 0.08em;
   white-space: nowrap;
+  text-shadow:
+    0 0 4px rgba(202, 223, 158, 0.8),
+    0 0 12px rgba(202, 223, 158, 0.5);
 }
 
 .hero-tagline {
@@ -172,7 +179,9 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 12px var(--accent);
+  box-shadow:
+    0 0 8px var(--accent),
+    0 0 18px rgba(202, 223, 158, 0.45);
   animation: pulse 2s ease-in-out infinite;
 }
 @keyframes pulse {
@@ -275,9 +284,29 @@
   border: 1px solid var(--rule);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(202, 223, 158, 0.04);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(202, 223, 158, 0.04),
+    inset 0 0 80px rgba(202, 223, 158, 0.025);
   position: relative;
   z-index: 1;
+}
+
+.code-window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.16) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  opacity: 0.55;
+  z-index: 2;
+  border-radius: inherit;
 }
 
 .code-titlebar {
@@ -510,9 +539,28 @@
   line-height: 1.8;
   color: var(--fg);
   overflow-x: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    inset 0 0 60px rgba(202, 223, 158, 0.025);
   position: relative;
   z-index: 1;
+}
+
+.sql-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.14) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  opacity: 0.5;
+  z-index: 2;
+  border-radius: inherit;
 }
 
 .sql-keyword {
@@ -645,15 +693,99 @@
 /* ──────────────────────────────────────────────────────────────────
    RESPONSIVE
    ────────────────────────────────────────────────────────────────── */
+
+/* Tablet — ease desktop layout down before it cramps */
+@media (max-width: 1024px) {
+  .hero { padding: 3rem 5vw 4rem; gap: 1.75rem; }
+  .hero-meta { gap: 2rem; }
+
+  .section { padding: 5.5rem 5vw; }
+  .section-title { left: 1rem; max-width: 22ch; }
+  .section-num { right: 5vw; }
+
+  .about-body { margin-left: clamp(0px, 8%, 100px); }
+  .sql-intro { left: 1rem; }
+
+  .timeline { padding-left: 1.5rem; }
+  .experience-item { grid-template-columns: 140px 1fr; gap: 1.75rem; }
+  .experience-item::before { left: -1.8rem; }
+
+  .stack-category { grid-template-columns: 140px 1fr; gap: 1.5rem; }
+}
+
+/* Phone */
 @media (max-width: 720px) {
   .resume { font-size: 15px; }
-  .hero { padding: 2rem 5vw 3rem; }
-  .hero-meta { flex-direction: column; gap: 1.5rem; }
-  .section { padding: 5rem 5vw; }
+
+  .hero { padding: 2.25rem 5vw 3rem; gap: 1.5rem; }
+  .hero-name { letter-spacing: -0.02em; }
+  .hero-tagline { font-size: clamp(1.05rem, 4.2vw, 1.35rem); }
+  .hero-meta {
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 1.5rem;
+  }
+
+  .section { padding: 4rem 5vw; }
+  .section-num {
+    top: 2rem;
+    right: 4vw;
+    font-size: clamp(5.5rem, 28vw, 10rem);
+  }
+  .section-title {
+    left: 0;
+    font-size: clamp(1.85rem, 7vw, 2.5rem);
+    max-width: none;
+  }
+  .section-header { margin-bottom: 2.5rem; }
+
   .about-body { margin-left: 0; }
-  .experience-item { grid-template-columns: 1fr; gap: 0.75rem; }
+  .about-lead { font-size: 1.15rem; }
+
+  .code-window, .sql-block { border-radius: 6px; }
+  .code-body { font-size: 0.78rem; padding: 1rem 1rem 1rem 0.75rem; line-height: 1.6; }
+  .sql-block { font-size: 0.78rem; padding: 1.1rem 1rem; line-height: 1.65; }
+  .sql-intro { left: 0; font-size: 1rem; margin-bottom: 1.5rem; }
+
+  .timeline { padding-left: 1.25rem; }
+  .experience-item {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 1.75rem 0;
+  }
+  .experience-item::before { left: -1.55rem; top: 1.75rem; }
+  .experience-role { font-size: 1.4rem; }
+
   .stack-category { grid-template-columns: 1fr; gap: 0.75rem; }
   .stack-label { padding-top: 0; }
-  .project { grid-template-columns: 60px 1fr 30px; gap: 1rem; }
-  .code-body, .sql-block { font-size: 0.8rem; padding: 1rem; }
+  .stack-chip { font-size: 0.78rem; padding: 0.35rem 0.75rem; }
+
+  .project {
+    grid-template-columns: 48px 1fr;
+    gap: 0.75rem;
+    padding: 1.75rem 0;
+  }
+  .project-arrow { display: none; }
+  .project:hover { padding-left: 0; }
+  .project-title { font-size: clamp(1.4rem, 6.5vw, 2rem); }
+  .project-desc { font-size: 0.85rem; }
+
+  .marquee-content { font-size: clamp(0.85rem, 3.5vw, 1rem); }
+
+  .footer { padding: 5rem 5vw 3rem; }
+  .footer-title {
+    font-size: clamp(2rem, 9vw, 3.25rem);
+    margin-bottom: 2rem;
+  }
+  .footer-email { font-size: clamp(1.1rem, 5vw, 1.75rem); }
+  .footer-links { gap: 1.5rem; margin-bottom: 3rem; }
+}
+
+/* Tiny phones — keep typography from busting the viewport */
+@media (max-width: 380px) {
+  .hero-name { font-size: clamp(2.5rem, 15vw, 3.8rem); }
+  .section-num { font-size: clamp(4.5rem, 30vw, 8rem); }
+  .stack-chip { font-size: 0.72rem; padding: 0.3rem 0.6rem; }
+  .code-body, .sql-block { font-size: 0.72rem; }
+  .boot-sequence { font-size: 0.78rem; }
 }

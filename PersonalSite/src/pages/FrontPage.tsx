@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -246,20 +246,18 @@ function FrontPage() {
         </div>
 
         <h1 className="hero-name">
-          {name.split("").map((c, i) => {
-            const isLast = i === name.length - 1;
-            const char = c === " " ? " " : c;
-
-            if (isLast) {
-              return (
-                <span key={i} className="name-tail">
-                  <span className="name-char">{char}</span>
-                  <span className="cursor">_</span>
-                </span>
-              );
-            }
+          {name.split(" ").map((word, wi, words) => {
+            const isLastWord = wi === words.length - 1;
             return (
-              <span key={i} className="name-char">{char}</span>
+              <Fragment key={wi}>
+                <span className="name-word">
+                  {word.split("").map((c, ci) => (
+                    <span key={ci} className="name-char">{c}</span>
+                  ))}
+                  {isLastWord && <span className="cursor">_</span>}
+                </span>
+                {!isLastWord && " "}
+              </Fragment>
             );
           })}
         </h1>
