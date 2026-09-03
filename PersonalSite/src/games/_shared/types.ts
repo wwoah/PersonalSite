@@ -38,6 +38,12 @@ export interface Game {
   accent: string;
 
   /**
+   * Whether this game tracks a high score (via useHighScore).
+   * If true, the cabinet will display the user's personal best.
+   */
+  hasHighScore?: boolean;
+
+  /**
    * The actual playable React component, lazy-loaded.
    * If null, the cabinet renders as "Coming Soon" and is non-interactive.
    */

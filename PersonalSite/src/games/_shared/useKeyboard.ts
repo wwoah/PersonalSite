@@ -10,18 +10,18 @@ import { useEffect, useRef, useCallback } from "react";
  * Both work with the standard event.key value ("ArrowLeft", " ", "a", etc).
  */
 export function useKeyboard() {
+  
   // Set of currently-held keys
   const heldKeys = useRef(new Set<string>());
 
   // Map of key → array of handlers
-  const handlers = useRef(new Map<string, Array<() => void>>());
+const handlers = useRef(new Map<string, Array<(e: KeyboardEvent) => void>>());
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => {
       heldKeys.current.add(e.key);
-      // Fire one-shot handlers
       const fns = handlers.current.get(e.key);
-      if (fns) fns.forEach((fn) => fn());
+      if (fns) fns.forEach((fn) => fn(e));
     };
     const onUp = (e: KeyboardEvent) => {
       heldKeys.current.delete(e.key);
@@ -40,11 +40,11 @@ export function useKeyboard() {
 
   const isDown = useCallback((key: string) => heldKeys.current.has(key), []);
 
-  const onKey = useCallback((key: string, handler: () => void) => {
+  const onKey = useCallback(
+  (key: string, handler: (e: KeyboardEvent) => void) => {
     const list = handlers.current.get(key) ?? [];
     list.push(handler);
     handlers.current.set(key, list);
-    // Return an unsubscribe function
     return () => {
       const current = handlers.current.get(key);
       if (!current) return;
@@ -53,7 +53,9 @@ export function useKeyboard() {
         current.filter((fn) => fn !== handler)
       );
     };
-  }, []);
+  },
+  []
+);
 
   return { isDown, onKey };
 }
