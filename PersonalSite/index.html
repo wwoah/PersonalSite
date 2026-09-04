@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Phillip</title>
+
+    <!-- Linked here rather than @import-ed from CSS: an @import cannot
+         begin downloading until the importing stylesheet has been
+         fetched and parsed, which serialises two round trips before any
+         real type renders. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..600,0..100,0..1&family=JetBrains+Mono:wght@300;400;500;700&display=swap"
+    />
   </head>
   <body>
     <div id="root"></div>

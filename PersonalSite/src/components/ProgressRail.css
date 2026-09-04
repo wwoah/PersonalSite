@@ -1,0 +1,166 @@
+/* ──────────────────────────────────────────────────────────────────
+   PROGRESS RAIL — fixed compass on the right edge
+   ────────────────────────────────────────────────────────────────── */
+.rail {
+  position: fixed;
+  right: clamp(0.75rem, 2.2vw, 2rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    "caret  caret"
+    "track  stops"
+    "label  label";
+  align-items: center;
+  justify-items: center;
+  gap: 0.75rem 0.6rem;
+
+  font-family: var(--mono);
+  pointer-events: none;
+}
+
+.rail > * {
+  pointer-events: auto;
+}
+
+/* ── Direction caret ──────────────────────────────────────────────── */
+.rail__caret {
+  grid-area: caret;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--accent);
+  opacity: 0.75;
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.35s ease;
+}
+
+.rail[data-dir="up"] .rail__caret {
+  transform: rotate(180deg);
+}
+
+/* ── Track ────────────────────────────────────────────────────────── */
+.rail__track {
+  grid-area: track;
+  position: relative;
+  width: 1px;
+  height: clamp(120px, 22vh, 210px);
+  background: var(--rule);
+  justify-self: center;
+}
+
+/* Progress arrives as --p (0→1) on the rail root rather than as a
+   transform, so the vertical rail and the mobile horizontal bar can
+   each pick their own axis from the same tween. */
+.rail__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  transform-origin: top center;
+  transform: scaleY(var(--p, 0));
+  box-shadow: 0 0 8px rgba(202, 223, 158, 0.7);
+}
+
+/* ── Ticks ────────────────────────────────────────────────────────── */
+.rail__stops {
+  grid-area: stops;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: clamp(120px, 22vh, 210px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail__tick {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0.15rem 0.2rem;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  color: var(--fg-dim);
+  opacity: 0.55;
+  transition: color 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+.rail__tick:hover,
+.rail__tick:focus-visible {
+  color: var(--accent);
+  opacity: 1;
+  transform: translateX(-3px);
+}
+
+.rail__tick:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.rail__tick[data-active] {
+  color: var(--accent);
+  opacity: 1;
+  text-shadow: 0 0 8px rgba(202, 223, 158, 0.6);
+}
+
+/* ── Current-section label ────────────────────────────────────────── */
+/* The last tick's text is centred on the end of the stops track, so it
+   overhangs that row by half a line. Clear it explicitly rather than
+   trusting the row gap. */
+.rail__label {
+  grid-area: label;
+  margin-top: 0.9rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  color: var(--fg-dim);
+  writing-mode: vertical-rl;
+  max-height: 14ch;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Small screens — the rail collapses to a hairline progress bar at the
+   top. Ticks and label would crowd a phone viewport for little gain.
+   ────────────────────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .rail {
+    top: 0;
+    right: 0;
+    left: 0;
+    transform: none;
+    display: block;
+    height: 2px;
+    background: var(--rule);
+  }
+
+  .rail__caret,
+  .rail__stops,
+  .rail__label {
+    display: none;
+  }
+
+  .rail__track {
+    width: 100%;
+    height: 2px;
+    background: none;
+  }
+
+  .rail__fill {
+    transform-origin: left center;
+    transform: scaleX(var(--p, 0));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail__caret,
+  .rail__tick {
+    transition: none;
+  }
+}

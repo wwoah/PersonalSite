@@ -33,6 +33,12 @@
 .arcade-root * { box-sizing: border-box; }
 .game-player-root * { box-sizing: border-box; }
 
+/* Previously inherited from #root. Now that the root container is
+   full-bleed and left-aligned for the resume, the arcade declares the
+   centring it was relying on. */
+.arcade-root,
+.game-player-root { text-align: center; }
+
 /* ──────────────────────────────────────────────────────────────────
    CRT effect layers — full-viewport overlays
    ────────────────────────────────────────────────────────────────── */

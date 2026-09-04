@@ -1,0 +1,373 @@
+/* ──────────────────────────────────────────────────────────────────
+   PANEL — section chrome + seam geometry
+
+   The layout rail
+   ───────────────
+   One grid for the whole page: a fixed label column and a content
+   column. Years, stack labels, project numbers and section kickers all
+   live in the rail; everything else lives in the content column. This
+   replaces the per-section `left: 2rem` / `margin-left: clamp()` nudges
+   that were previously compensating for an inherited text-align.
+   ────────────────────────────────────────────────────────────────── */
+.panel {
+  --rail: minmax(0, 180px);
+  --gutter: clamp(1.5rem, 4vw, 3.5rem);
+
+  /* Where the diagonal crosses the left and right edges, measured up
+     from the bottom of the viewport. Overridden per panel from JSX. */
+  --cut-l: 58vh;
+  --cut-r: 34vh;
+
+  position: relative;
+  padding: clamp(4rem, 9vw, 7.5rem) clamp(1.25rem, 6vw, 5rem);
+  border-top: 1px solid var(--rule);
+
+  /* The depth every seam animates into. perspective-origin sits below
+     centre so receding content tips away from the reader's eyeline
+     rather than straight back. */
+  perspective: 1400px;
+  perspective-origin: 50% 62%;
+}
+
+.panel__stage {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+.panel__layer {
+  position: relative;
+}
+
+/* The bisected duplicate. Invisible and inert at rest — it only exists
+   so the seam has a second half to push away. */
+.panel__layer--b {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── The cut ──────────────────────────────────────────────────────
+   clip-path is applied as a discrete class toggle at the seam
+   boundary, never tweened. Two reasons: re-clipping every frame is
+   expensive, and while the panel is whole we need layer A unclipped
+   so text selection and clicks work across the entire section.
+
+   The polygons are complementary halves of the same diagonal, so with
+   both layers stacked the section reads as a single intact surface —
+   right up until the transforms pull them apart.               */
+.panel.is-cutting .panel__layer--a {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--cut-r)),
+    0 calc(100% - var(--cut-l))
+  );
+}
+
+/* Pointer events come back with the cut. Layer A stops being
+   hit-testable outside its own clip, so whatever sits on the far side of
+   the diagonal — the hero's arcade link, for one — would otherwise go
+   dead the moment the seam opens. The clips are complementary and travel
+   apart, so exactly one copy ever answers a click. */
+.panel.is-cutting .panel__layer--b {
+  opacity: 1;
+  pointer-events: auto;
+  clip-path: polygon(
+    0 calc(100% - var(--cut-l)),
+    100% calc(100% - var(--cut-r)),
+    100% 100%,
+    0 100%
+  );
+}
+
+/* Hint the compositor only while a seam is live, then release. A
+   permanent will-change on every panel would pin a layer per section
+   for the entire session. */
+.panel.is-cutting .panel__layer,
+.panel.is-cutting .panel__stage {
+  will-change: transform, opacity;
+}
+
+/* ── Content grid ─────────────────────────────────────────────────── */
+.panel__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  column-gap: var(--gutter);
+  align-items: start;
+}
+
+/* Default placement: content column. Blocks that need the full rail
+   opt out with `grid-column: 1 / -1`. */
+.panel__inner > * {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.panel__header {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  column-gap: var(--gutter);
+  align-items: baseline;
+  margin-bottom: clamp(2.25rem, 5vw, 4rem);
+}
+
+.panel__kicker {
+  grid-column: 1;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin: 0;
+  padding-top: 0.9em;
+}
+
+.panel__title {
+  grid-column: 2;
+  font-family: var(--display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+  color: var(--fg);
+  margin: 0;
+}
+
+/* SplitText mask wrapper — lines slide up out of their own clip. */
+.panel__title-line {
+  padding-bottom: 0.06em;
+}
+
+/* ── Ghost numeral ────────────────────────────────────────────────── */
+.panel__num {
+  position: absolute;
+  top: clamp(1.5rem, 4vw, 4rem);
+  right: clamp(0.5rem, 3vw, 4rem);
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(7rem, 19vw, 17rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+  opacity: 0.06;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+  padding-right: 0.1em;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SEAM OVERLAYS
+
+   Panels are taller than the viewport, but while pinned their bottom
+   screenful *is* the viewport. Anchoring every overlay to
+   `bottom: 0; height: 100vh` therefore registers it to the screen
+   without measuring anything at runtime — and keeps it agreeing with
+   the vh units in --cut-l / --cut-r.
+   ────────────────────────────────────────────────────────────────── */
+.panel__blade,
+.panel__wipe,
+.panel__slats,
+.panel__incoming {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100vh;
+  pointer-events: none;
+}
+
+/* ── Blade — the cut announces itself before it happens ───────────── */
+.panel__blade {
+  z-index: 6;
+  width: 100%;
+  opacity: 0;
+  overflow: visible;
+}
+
+.panel__blade-line {
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  fill: none;
+  filter: drop-shadow(0 0 6px var(--accent))
+    drop-shadow(0 0 20px rgba(202, 223, 158, 0.65));
+}
+
+/* ── Wipe ─────────────────────────────────────────────────────────── */
+.panel__wipe {
+  z-index: 7;
+  transform: translateX(-101%);
+  background: linear-gradient(
+    100deg,
+    var(--bg-elevated) 0%,
+    var(--bg-soft) 58%,
+    var(--accent) 100%
+  );
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Curtain ──────────────────────────────────────────────────────── */
+.panel__slats {
+  z-index: 7;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+}
+
+.panel__slat {
+  background: var(--bg-elevated);
+  border-right: 1px solid rgba(202, 223, 158, 0.1);
+  transform: scaleY(0);
+  transform-origin: top center;
+}
+
+.panel__slat:last-child {
+  border-right: none;
+}
+
+/* ── Incoming card ────────────────────────────────────────────────
+   The next section's header, rising out of the gap. It lands on the
+   same rail geometry the real header will occupy, so the pin release
+   reads as a handoff rather than a jump cut. */
+.panel__incoming {
+  z-index: 8;
+  display: grid;
+  align-content: center;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  column-gap: var(--gutter);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 6vw, 5rem);
+  opacity: 0;
+  transform-style: preserve-3d;
+}
+
+.panel__incoming-num {
+  position: absolute;
+  top: 50%;
+  right: clamp(0.5rem, 3vw, 4rem);
+  transform: translateY(-70%);
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(7rem, 19vw, 17rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+  opacity: 0.09;
+  user-select: none;
+}
+
+.panel__incoming-kicker {
+  grid-column: 1;
+  align-self: baseline;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin: 0;
+  padding-top: 0.9em;
+}
+
+.panel__incoming-title {
+  grid-column: 2;
+  font-family: var(--display);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  max-width: 20ch;
+  color: var(--fg);
+  margin: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   RESPONSIVE — the rail collapses before the content does
+   ────────────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .panel {
+    --rail: minmax(0, 140px);
+  }
+}
+
+@media (max-width: 720px) {
+  .panel {
+    --rail: minmax(0, 1fr);
+    --gutter: 0px;
+    perspective: 900px;
+  }
+
+  .panel__inner,
+  .panel__header,
+  .panel__incoming {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel__inner > *,
+  .panel__kicker,
+  .panel__title,
+  .panel__incoming-kicker,
+  .panel__incoming-title {
+    grid-column: 1;
+  }
+
+  .panel__kicker,
+  .panel__incoming-kicker {
+    padding-top: 0;
+    margin-bottom: 0.85rem;
+  }
+
+  .panel__title,
+  .panel__incoming-title {
+    max-width: none;
+    font-size: clamp(1.85rem, 7vw, 2.5rem);
+  }
+
+  .panel__num,
+  .panel__incoming-num {
+    font-size: clamp(5rem, 27vw, 9rem);
+    top: clamp(1rem, 3vw, 2rem);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   REDUCED MOTION
+
+   PanelSwitch already renders a different component here — no pin, no
+   duplicate layer, no 3D. These rules are the belt-and-braces: even if
+   a seam class leaked through, nothing clips and nothing lifts.
+   ────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel--plain {
+    perspective: none;
+  }
+
+  .panel__layer--a,
+  .panel__layer--b {
+    clip-path: none !important;
+  }
+
+  .panel__layer--b,
+  .panel__blade,
+  .panel__wipe,
+  .panel__slats,
+  .panel__incoming {
+    display: none !important;
+  }
+
+  .panel__stage,
+  .panel__layer {
+    will-change: auto !important;
+  }
+}

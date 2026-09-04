@@ -50,11 +50,14 @@
   }
 }
 
+/* The resume is a full-bleed, scroll-driven page: it manages its own
+   measure and gutters per section, and ScrollSmoother needs an
+   unconstrained scroll container. A fixed 1126px cap and an inherited
+   `text-align: center` here (left over from the Vite starter) were
+   what the section styles used to fight with positional nudges. */
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
   margin: 0 auto;
-  text-align: center;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
