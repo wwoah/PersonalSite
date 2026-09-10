@@ -110,11 +110,11 @@ const STACK = [
   },
   {
     label: "Data",
-    chips: ["Entity Framework", "EF Core", "Dapper", "SQL Server", "Stored Procedures", "Query Tuning", "Migrations"],
+    chips: ["Entity Framework", "EF Core", "SQL Server", "Stored Procedures", "Migrations"],
   },
   {
     label: "Tools & Platforms",
-    chips: ["Visual Studio", "VS Code", "Rider", "Git", "Azure DevOps", "Docker", "xUnit", "Vitest", "Postman"],
+    chips: ["Visual Studio", "VS Code", "Git", "Azure DevOps", "Docker", "xUnit", "Postman"],
   },
 ];
 
