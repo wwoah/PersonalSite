@@ -128,7 +128,7 @@ const PROJECTS = [
   },
   {
     num: "002",
-    title: "Peel Riot",
+    title: "Peel Riot (WIP)",
     category: "MongoDB · Typescript - React · GSAP",
     desc: "Purely custom sticker website. Slight plug, but still worth highlighting.",
     link: "https://peelriot.com",
