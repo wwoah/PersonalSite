@@ -498,6 +498,101 @@ function StackBody() {
 }
 
 /* ──────────────────────────────────────────────────────────────────
+   MARQUEE
+
+   The strip loops by sliding exactly one copy's width and starting
+   over, which is seamless only while the copies left on screen still
+   span the viewport at the instant it resets. That needs one copy to
+   fill the screen and one more behind it to cover the jump.
+
+   The count is measured rather than assumed. It was hardcoded at two,
+   which held only while a single copy was wider than the screen — the
+   terminal restyle took the type from 1.25rem down to 0.875rem, one
+   copy fell to 994px, and the reset started exposing bare track: a
+   445px gap at 1440 and 925px at 1920. Phones never showed it, because
+   there a copy is still wider than the screen.
+   ────────────────────────────────────────────────────────────────── */
+
+/** Scroll speed in px/sec, held constant however many copies there are. */
+const MARQUEE_SPEED = 33;
+
+const MARQUEE_LINE = (
+  <>
+    <span className="marquee-dot">●</span> Open to full-stack &amp; frontend
+    roles
+    <span className="marquee-dot">●</span> Remote, hybrid or on site
+    <span className="marquee-dot">●</span> React · TypeScript · .NET · SQL
+    Server
+  </>
+);
+
+function Marquee() {
+  const root = useRef<HTMLDivElement>(null);
+  const [copies, setCopies] = useState(2);
+
+  useGSAP(
+    () => {
+      const wrap = root.current;
+      const track = wrap?.querySelector<HTMLElement>(".marquee-track");
+      const one = wrap?.querySelector<HTMLElement>(".marquee-content");
+      if (!wrap || !track || !one) return;
+
+      let tween: gsap.core.Tween | undefined;
+
+      const fit = () => {
+        const w = one.getBoundingClientRect().width;
+        if (!w) return;
+
+        /* One copy to fill the viewport, plus one to cover the reset.
+           Returning the current value when it already fits lets React
+           bail out, so this cannot loop against its own dependency. */
+        const need = Math.ceil(wrap.clientWidth / w) + 1;
+        setCopies((c) => (c === need ? c : need));
+
+        tween?.kill();
+        gsap.set(track, { x: 0 });
+        if (reduceMotion()) return;
+
+        tween = gsap.to(track, {
+          x: -w,
+          duration: w / MARQUEE_SPEED,
+          ease: "none",
+          repeat: -1,
+        });
+      };
+
+      fit();
+
+      /* Both of these change a copy's width, and either one alone would
+         leave the strip mis-measured: the webfont replacing the
+         fallback, and the viewport resizing across the font-size
+         clamp. */
+      const ro = new ResizeObserver(fit);
+      ro.observe(wrap);
+      document.fonts?.ready.then(fit);
+
+      return () => {
+        ro.disconnect();
+        tween?.kill();
+      };
+    },
+    { scope: root, dependencies: [copies] }
+  );
+
+  return (
+    <div className="marquee" ref={root} aria-hidden="true">
+      <div className="marquee-track">
+        {Array.from({ length: copies }).map((_, i) => (
+          <span key={i} className="marquee-content">
+            {MARQUEE_LINE}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
    PAGE
    ────────────────────────────────────────────────────────────────── */
 function FrontPage() {
@@ -591,13 +686,9 @@ function FrontPage() {
         });
       });
 
-      /* Marquee */
-      gsap.to(q(".marquee-track"), {
-        xPercent: -50,
-        ease: "none",
-        duration: 30,
-        repeat: -1,
-      });
+      /* The marquee drives itself — it has to measure its own copies to
+         know how far to travel, so it owns its tween rather than being
+         animated from out here. */
 
       /* Footer */
       gsap.from(q(".footer-content > *"), {
@@ -742,19 +833,7 @@ function FrontPage() {
         </Panel>
 
         {/* ── Outro ticker ── */}
-        <div className="marquee" aria-hidden="true">
-          <div className="marquee-track">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <span key={i} className="marquee-content">
-                <span className="marquee-dot">●</span> Open to full-stack &amp;
-                frontend roles
-                <span className="marquee-dot">●</span> Remote, hybrid or on site
-                <span className="marquee-dot">●</span> React · TypeScript · .NET
-                · SQL Server
-              </span>
-            ))}
-          </div>
-        </div>
+        <Marquee />
 
         <footer className="footer" id="contact">
           <div className="footer-content">
