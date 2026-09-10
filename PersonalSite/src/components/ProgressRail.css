@@ -61,7 +61,7 @@
   background: var(--accent);
   transform-origin: top center;
   transform: scaleY(var(--p, 0));
-  box-shadow: 0 0 8px rgba(202, 223, 158, 0.7);
+  box-shadow: 0 0 8px rgba(53, 208, 127, 0.75);
 }
 
 /* ── Ticks ────────────────────────────────────────────────────────── */
@@ -106,7 +106,7 @@
 .rail__tick[data-active] {
   color: var(--accent);
   opacity: 1;
-  text-shadow: 0 0 8px rgba(202, 223, 158, 0.6);
+  text-shadow: 0 0 8px rgba(53, 208, 127, 0.65);
 }
 
 /* ── Current-section label ────────────────────────────────────────── */

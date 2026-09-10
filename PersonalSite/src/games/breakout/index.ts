@@ -7,7 +7,7 @@ const Breakout: Game = {
   year: "1976",
   difficulty: 3,
   controls: ["← / → to move", "Space to launch"],
-  accent: "#857f74",
+  accent: "#e5c07b",
   component: null,
 };
 

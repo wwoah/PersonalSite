@@ -5,9 +5,9 @@ import type { GameProps } from "../_shared/types";
 
 const GRID_SIZE = 20;
 const CELL = 20; // 20 * 20 = 400px canvas
-const ACCENT = "#cadf9e";
-const FOOD_COLOR = "#e07a5f";
-const BG = "#0a0a0a";
+const ACCENT = "#35d07f";
+const FOOD_COLOR = "#e06c75";
+const BG = "#050708";
 
 type Point = { x: number; y: number };
 type Dir = "up" | "down" | "left" | "right";
@@ -169,7 +169,7 @@ const unsubs = [
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Grid lines — subtle, just enough to read the board.
-      ctx.strokeStyle = "rgba(202, 223, 158, 0.1)";
+      ctx.strokeStyle = "rgba(53, 208, 127, 0.1)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       for (let i = 1; i < GRID_SIZE; i++) {
@@ -193,7 +193,7 @@ const unsubs = [
 
       // Snake — head slightly brighter than body for visibility.
       newSnake.forEach((seg, i) => {
-        ctx.fillStyle = i === 0 ? "#e8ffb8" : ACCENT;
+        ctx.fillStyle = i === 0 ? "#8affc1" : ACCENT;
         ctx.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
       });
     },
@@ -219,7 +219,7 @@ const unsubs = [
       CELL - 4
     );
     snakeRef.current.forEach((seg, i) => {
-      ctx.fillStyle = i === 0 ? "#e8ffb8" : ACCENT;
+      ctx.fillStyle = i === 0 ? "#8affc1" : ACCENT;
       ctx.fillRect(seg.x * CELL + 1, seg.y * CELL + 1, CELL - 2, CELL - 2);
     });
   }, []);

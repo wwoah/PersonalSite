@@ -6,9 +6,9 @@ import { ScrollSmoother, ScrollTrigger, reduceMotion } from "../anim/gsap";
 /* ──────────────────────────────────────────────────────────────────
    ScrollSmoother wrapper.
 
-   Two things this buys beyond "nice scrolling": scrubbed seam
-   timelines stop looking steppy on trackpads and low-refresh mice,
-   and `effects: true` lets any element opt into parallax with a plain
+   Two things this buys beyond "nice scrolling": scrubbed timelines
+   stop looking steppy on trackpads and low-refresh mice, and
+   `effects: true` lets any element opt into parallax with a plain
    `data-speed` attribute — no extra ScrollTrigger per element.
 
    Native scroll is left alone on touch (smoothTouch: 0). Rewriting

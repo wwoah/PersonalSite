@@ -8,7 +8,7 @@ tagline: "Grow the tail. Don't bite it.",
 year: "1978",
 difficulty: 1,
 controls: ["← ↑ ↓ → to steer", "P to pause"],
-accent: "#cadf9e",
+accent: "#35d07f",
 component: SnakeGame,  // ← only change needed
 };
 export default Snake;

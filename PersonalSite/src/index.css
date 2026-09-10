@@ -1,24 +1,67 @@
+/* ──────────────────────────────────────────────────────────────────
+   GLOBAL SHELL
+
+   The whole site is one console surface, so the root tokens are the
+   terminal's tokens. There is no light mode: a light PowerShell window
+   is a thing that exists, but the page's entire visual argument —
+   glow, scanlines, phosphor accents — is built on a dark ground, and a
+   light variant would be a different design rather than a recolour.
+   `color-scheme: dark` tells the UA to match its own chrome
+   (scrollbars, form controls, the flash before first paint) to that.
+   ────────────────────────────────────────────────────────────────── */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  /* ── Ground ─────────────────────────────────────────────────────
+     Windows Terminal / VS Code dark, not pure black. #000 on an OLED
+     panel makes the scanline overlay invisible and the glow read as
+     haze; a near-black keeps both legible. */
+  --bg: #0a0c0d;
+  --bg-soft: #121617;
+  --bg-elevated: #0e1112;
+  --bg-chrome: #16191b;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* ── Foreground ────────────────────────────────────────────────
+     Console white is very slightly cool and never #fff — a pure white
+     on near-black vibrates at mono's stroke weight. */
+  --fg: #d4dad7;
+  --fg-muted: #8a9490;
+  --fg-dim: #767f7b;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
+  --rule: rgba(53, 208, 127, 0.14);
+  --rule-hard: rgba(212, 218, 215, 0.12);
+
+  /* ── Phosphor ───────────────────────────────────────────────────
+     One green, three intensities. 9.8:1 on the ground, so it carries
+     small text as well as it carries glow. */
+  --accent: #35d07f;
+  --accent-bright: #5ce89b;
+  --accent-dim: #1f8a54;
+  --accent-glow: rgba(53, 208, 127, 0.55);
+  --accent-wash: rgba(53, 208, 127, 0.08);
+
+  /* ── Console 16-colour, the half we actually use ────────────────
+     PowerShell's own syntax colours: cyan for parameters, yellow for
+     strings, magenta for keywords, red for errors, blue for types. */
+  --c-cyan: #56c7e8;
+  --c-yellow: #e5c07b;
+  --c-magenta: #c586c0;
+  --c-red: #e06c75;
+  --c-blue: #61afef;
+
+  --shadow: rgba(0, 0, 0, 0.55) 0 20px 45px -12px,
+    rgba(0, 0, 0, 0.4) 0 6px 14px -6px;
+
+  /* One family for everything. JetBrains Mono first; Cascadia is the
+     local Windows fallback so a failed webfont still lands on the
+     terminal's own face rather than on Courier. */
+  --mono: 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', Consolas,
+    ui-monospace, 'SF Mono', Menlo, monospace;
+  --sans: var(--mono);
+  --display: var(--mono);
+
+  font: 16px/1.6 var(--mono);
+  letter-spacing: 0;
+  color-scheme: dark;
+  color: var(--fg);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -26,35 +69,45 @@
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;  
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+body {
+  margin: 0;
+  background: var(--bg);
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* Console scrollbar. The default light thumb is the one piece of UA
+   chrome that reads as "web page" rather than "terminal". */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-dim) var(--bg-elevated);
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--bg-elevated);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--accent-dim);
+  border: 2px solid var(--bg-elevated);
+  border-radius: 0;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--bg);
 }
 
 /* The resume is a full-bleed, scroll-driven page: it manages its own
    measure and gutters per section, and ScrollSmoother needs an
-   unconstrained scroll container. A fixed 1126px cap and an inherited
-   `text-align: center` here (left over from the Vite starter) were
-   what the section styles used to fight with positional nudges. */
+   unconstrained scroll container. */
 #root {
   width: 100%;
   margin: 0 auto;
@@ -63,4 +116,3 @@
   flex-direction: column;
   box-sizing: border-box;
 }
-

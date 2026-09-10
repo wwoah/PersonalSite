@@ -1,38 +1,52 @@
 /* ──────────────────────────────────────────────────────────────────
    TOKENS
 
-   Fonts are linked from index.html rather than @import-ed here. An
-   @import inside a stylesheet cannot start downloading until this file
-   has been fetched and parsed, which serialises two round trips before
-   any real type appears.
+   The page is one console surface. Everything below inherits the
+   terminal palette from :root (index.css) — these locals exist so the
+   resume can be dropped into a differently-themed shell and still
+   carry its own ground.
+
+   One font family, no serif. Display sizes are the same face at 800,
+   which is why there is nothing here to wait on after first paint.
    ────────────────────────────────────────────────────────────────── */
 .resume {
-  --charcoal-brown: #313628;
-  --charcoal: #595358;
-  --grey-olive: #857f74;
-  --ash-grey: #a4ac96;
-  --tea-green: #cadf9e;
+  --bg: #0a0c0d;
+  --bg-soft: #121617;
+  --bg-elevated: #0e1112;
+  --bg-chrome: #16191b;
 
-  /* Semantic mappings */
-  --bg: var(--charcoal-brown);
-  --bg-soft: #3a3f30;
-  --bg-elevated: #2a2e22;
-  --fg: #e8ecd9;
-  --fg-muted: var(--ash-grey);
-  --fg-dim: var(--grey-olive);
-  --rule: rgba(164, 172, 150, 0.18);
-  --accent: var(--tea-green);
+  --fg: #d4dad7;
+  --fg-muted: #8a9490;
+  --fg-dim: #767f7b;
 
-  --display: "Fraunces", "Times New Roman", serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
+  --rule: rgba(53, 208, 127, 0.14);
+  --rule-hard: rgba(212, 218, 215, 0.1);
 
-  --measure: 65ch;
+  --accent: #35d07f;
+  --accent-bright: #5ce89b;
+  --accent-dim: #1f8a54;
+  --accent-glow: rgba(53, 208, 127, 0.55);
+  --accent-wash: rgba(53, 208, 127, 0.08);
+
+  --c-cyan: #56c7e8;
+  --c-yellow: #e5c07b;
+  --c-magenta: #c586c0;
+  --c-red: #e06c75;
+  --c-blue: #61afef;
+
+  --mono: 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', Consolas,
+    ui-monospace, monospace;
+  --display: var(--mono);
+
+  /* Monospace runs wider per character than proportional type, so the
+     comfortable measure is shorter here than the usual 65ch. */
+  --measure: 58ch;
 
   background: var(--bg);
   color: var(--fg);
   font-family: var(--mono);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.65;
   text-align: left;
   -webkit-font-smoothing: antialiased;
 
@@ -48,9 +62,9 @@
 
 /* ScrollSmoother writes the page's scroll height onto <body> and makes
    #smooth-wrapper `position: fixed`, which collapses .resume to zero
-   height — so its background would stop painting and the light-mode
-   body would show through. Painting the wrapper covers the viewport
-   under the smoother, and the whole document without it. */
+   height — so its background would stop painting and the bare body
+   would show through. Painting the wrapper covers the viewport under
+   the smoother, and the whole document without it. */
 .resume #smooth-wrapper {
   background: var(--bg);
 }
@@ -59,20 +73,87 @@
   color: inherit;
   text-decoration: none;
   border-bottom: 1px solid var(--rule);
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
 }
 .resume a:hover {
-  color: var(--accent);
+  color: var(--accent-bright);
   border-color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+.resume a:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 3px;
 }
 
+/* ── Outbound link ────────────────────────────────────────────────
+   A link sitting inside running content has to announce itself. The
+   base rule above underlines at --rule — 14% alpha — which reads as a
+   hairline separator rather than as something you can click, and is
+   invisible next to accent-coloured text like a company name.
+
+   Two signals instead of one: a dashed rule in the accent, which the
+   arcade link already established on this page as "this goes
+   somewhere", and the conventional outbound arrow. Two classes beats
+   `.resume a`'s class-plus-element, so no !important is needed.
+   ────────────────────────────────────────────────────────────────── */
+.resume .link-out {
+  color: inherit;
+  border-bottom: 1px dashed var(--accent-dim);
+  transition: border-color 0.2s ease, border-bottom-style 0.2s ease,
+    color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.resume .link-out:hover,
+.resume .link-out:focus-visible {
+  border-bottom-style: solid;
+  border-bottom-color: var(--accent);
+}
+
+.link-out__mark {
+  display: inline-block;
+  margin-left: 0.4ch;
+  font-size: 0.85em;
+  line-height: 1;
+  /* Baseline-aligned at 0.85em the arrow hangs level with the x-height
+     and reads as punctuation. Raised, it reads as a mark on the link. */
+  vertical-align: 0.12em;
+  transition: transform 0.2s ease;
+}
+
+/* The arrow leaves the way it points. */
+.resume .link-out:hover .link-out__mark,
+.resume .link-out:focus-visible .link-out__mark {
+  transform: translate(1px, -1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-out__mark {
+    transition: none;
+  }
+}
+
+/* Inline code in prose reads as a chip. */
 .resume code {
   font-family: var(--mono);
   font-size: 0.9em;
-  background: rgba(202, 223, 158, 0.08);
-  color: var(--accent);
+  background: var(--accent-wash);
+  color: var(--accent-bright);
   padding: 0.1em 0.4em;
-  border-radius: 3px;
+  border-radius: 2px;
+}
+
+/* …but a <code> inside a <pre> is a whole listing, not a chip, and the
+   chip styling actively breaks it. <code> is inline, so wrapping block
+   children leaves an empty inline fragment above the first line and
+   below the last — each painting the chip's background and padding as
+   a stray bar in the gutter. The 0.9em also shrank every listing to
+   nine-tenths of the prompt line sitting directly above it. */
+.resume pre code {
+  font-size: inherit;
+  background: none;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
 }
 
 .sr-only {
@@ -88,11 +169,15 @@
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   Atmosphere — grain + grid.
+   Atmosphere — grain, scanlines, character grid.
 
    These sit on .resume, which is outside the ScrollSmoother content
    wrapper, so `position: fixed` still resolves against the viewport
    rather than the transformed scroll layer.
+
+   The scanline pass does most of the CRT work, so it is kept
+   deliberately faint: at full strength it halves the contrast of every
+   line of body copy on the page.
    ────────────────────────────────────────────────────────────────── */
 .resume::before {
   content: "";
@@ -100,7 +185,7 @@
   inset: 0;
   pointer-events: none;
   z-index: 100;
-  opacity: 0.05;
+  opacity: 0.045;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
@@ -110,13 +195,215 @@
   inset: 0;
   pointer-events: none;
   z-index: 99;
-  opacity: 0.5;
-  background-image: linear-gradient(
-      rgba(164, 172, 150, 0.04) 1px,
-      transparent 1px
+  opacity: 0.55;
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.22) 0px,
+      rgba(0, 0, 0, 0.22) 1px,
+      transparent 1px,
+      transparent 3px
     ),
-    linear-gradient(90deg, rgba(164, 172, 150, 0.04) 1px, transparent 1px);
-  background-size: 80px 80px;
+    linear-gradient(rgba(53, 208, 127, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 208, 127, 0.035) 1px, transparent 1px);
+  background-size: 100% 3px, 80px 80px, 80px 80px;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   PROMPT
+
+   The page's single most repeated element. `PS ` is dim chrome, the
+   path is cyan the way PowerShell renders it, and the `>` is the
+   phosphor accent — so the eye lands on the command rather than on the
+   path noise in front of it.
+   ────────────────────────────────────────────────────────────────── */
+.ps-prompt {
+  color: var(--fg-dim);
+  white-space: nowrap;
+  user-select: none;
+}
+.ps-prompt .ps-path {
+  color: var(--c-cyan);
+}
+.ps-prompt .ps-caret {
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent-glow);
+  margin-right: 0.6ch;
+}
+
+/* Cmdlets in the Verb-Noun idiom: the verb takes PowerShell's own
+   command yellow, the noun stays foreground, so `Get-Experience` reads
+   as one token with the emphasis on its subject. */
+.ps-cmd {
+  color: var(--fg);
+}
+.ps-verb {
+  color: var(--c-yellow);
+}
+.ps-param {
+  color: var(--c-cyan);
+}
+.ps-str {
+  color: var(--accent-bright);
+}
+.ps-pipe {
+  color: var(--c-magenta);
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   TERMINAL WINDOW
+
+   Windows Terminal chrome rather than the traffic-light dots the page
+   used to wear: a tab strip with one active tab, a new-tab affordance,
+   and the three Windows caption buttons. Used by the source viewer and
+   the query runner.
+   ────────────────────────────────────────────────────────────────── */
+.term {
+  background: var(--bg-elevated);
+  border: 1px solid var(--rule-hard);
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(53, 208, 127, 0.05),
+    inset 0 0 90px rgba(53, 208, 127, 0.02);
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+}
+
+.term__bar {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-chrome);
+  border-bottom: 1px solid var(--rule-hard);
+  font-size: 0.72rem;
+  user-select: none;
+}
+
+.term__tabs {
+  display: flex;
+  align-items: stretch;
+}
+
+/* The strip used to draw exactly one tab, always lit, because it was
+   decoration. Now that it selects between two files it needs the other
+   half of the state: an unselected tab recedes to the bar's own colour
+   and loses the accent edge, the way a background tab does. */
+.term__tab {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 1.1rem;
+  background: transparent;
+  color: var(--fg-dim);
+  border: none;
+  border-top: 2px solid transparent;
+  font: inherit;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.term__tab[aria-selected="true"] {
+  background: var(--bg-elevated);
+  color: var(--fg);
+  border-top-color: var(--accent);
+  cursor: default;
+}
+
+.term__tab:not([aria-selected="true"]):hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--fg-muted);
+}
+
+.term__tab:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.term__chrome {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+}
+
+.term__tab-icon {
+  color: var(--accent);
+  font-size: 0.85em;
+}
+
+.term__newtab {
+  display: flex;
+  align-items: center;
+  padding: 0 0.9rem;
+  color: var(--fg-dim);
+  border-top: 2px solid transparent;
+}
+
+.term__spacer {
+  flex: 1;
+  border-top: 2px solid transparent;
+}
+
+.term__controls {
+  display: flex;
+  align-items: stretch;
+  color: var(--fg-dim);
+  border-top: 2px solid transparent;
+}
+.term__controls span {
+  display: flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  font-size: 0.68rem;
+}
+.term__controls span:last-child {
+  color: var(--fg-muted);
+}
+
+.term__body {
+  margin: 0;
+  padding: 1.4rem 1.5rem 1.6rem;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  line-height: 1.75;
+  color: var(--fg);
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Phosphor scanlines inside the window itself, on top of the page-wide
+   pass — a lit screen inside a lit screen. */
+.term__body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0) 4px
+  );
+  opacity: 0.5;
+  z-index: 2;
+}
+
+/* The command line that opens a window's output. */
+.term__cmdline {
+  white-space: pre-wrap;
+  margin: 0 0 0.9rem;
+}
+
+/* The listing inside a window is a <pre> nested in the window's own
+   padded body, so it contributes none of its own — and inherits the
+   body's type rather than the UA's default monospace at 13px. */
+.term__body pre {
+  margin: 0;
+  padding: 0;
+  font: inherit;
 }
 
 /* ──────────────────────────────────────────────────────────────────
@@ -137,29 +424,26 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2rem;
+  gap: 1.75rem;
   padding: 4rem 0;
   position: relative;
 }
 
 .boot-sequence {
   font-family: var(--mono);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--fg-muted);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 .boot-line {
-  margin: 0.25rem 0;
+  margin: 0.2rem 0;
+  white-space: pre-wrap;
 }
 .boot-output {
-  color: var(--fg-dim);
+  color: var(--accent-bright);
   padding-left: 1.5rem;
-  min-height: 1.6em;
-}
-.prompt {
-  color: var(--accent);
-  margin-right: 0.75rem;
-  text-shadow: 0 0 8px rgba(202, 223, 158, 0.4);
+  min-height: 1.65em;
+  text-shadow: 0 0 10px rgba(53, 208, 127, 0.35);
 }
 
 /* Elements the hero timeline reveals. Held at zero until GSAP takes
@@ -168,17 +452,29 @@
   opacity: 0;
 }
 
+/* ── The banner ───────────────────────────────────────────────────
+   Set on two lines rather than one. Monospace runs ~0.6em per glyph,
+   so "PHILLIP BISHOP" on a single line is 8.4em wide and caps out
+   around 6rem before it overruns the measure — barely half the display
+   size the layout can carry. Broken in two it is 4.2em wide and can
+   run to 8.5rem, which is what makes it read as a banner rather than
+   as a heading.
+   ────────────────────────────────────────────────────────────────── */
 .hero-name {
   font-family: var(--display);
-  font-weight: 400;
-  font-style: italic;
-  font-size: clamp(3rem, 12vw, 11rem);
-  line-height: 0.9;
-  letter-spacing: -0.03em;
+  font-weight: 800;
+  font-style: normal;
+  font-size: clamp(2.4rem, 10.5vw, 8.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
   color: var(--fg);
   margin: 0;
-  font-variation-settings: "SOFT" 50, "WONK" 1;
-  padding-right: 0.15em;
+  text-shadow: 0 0 28px rgba(53, 208, 127, 0.16);
+}
+
+.hero-name-line {
+  display: block;
 }
 
 /* SplitText mask wrappers — chars rise out of a hard edge. */
@@ -186,46 +482,96 @@
   will-change: transform;
 }
 
+/* The banner's cursor. Scaled down against the display size — an
+   underscore set at 8.5rem/800 alongside the name is a slab as tall as
+   a letter, which reads as a glyph rather than as a caret. */
 .cursor {
   display: inline-block;
   color: var(--accent);
   font-style: normal;
-  margin-left: 0.08em;
+  font-size: 0.5em;
+  margin-left: 0.12em;
   white-space: nowrap;
-  text-shadow: 0 0 4px rgba(202, 223, 158, 0.8),
-    0 0 12px rgba(202, 223, 158, 0.5);
+  text-shadow: 0 0 6px var(--accent-glow), 0 0 18px rgba(53, 208, 127, 0.45);
 }
 
 .hero-tagline {
-  font-family: var(--display);
-  font-size: clamp(1.25rem, 2.2vw, 1.65rem);
-  line-height: 1.4;
+  font-family: var(--mono);
+  font-size: clamp(0.95rem, 1.35vw, 1.1rem);
+  line-height: 1.75;
   color: var(--fg-muted);
   max-width: var(--measure);
-  font-weight: 300;
+  font-weight: 400;
 }
 
-.hero-meta {
-  display: flex;
-  gap: 3rem;
-  flex-wrap: wrap;
-  padding-top: 2rem;
+/* The tagline is set as a comment block — it is commentary on the
+   banner above it, and the syntax says so without needing a label. */
+.hero-tagline::before {
+  content: "# ";
+  color: var(--accent-dim);
+}
+
+/* ── Format-List output ───────────────────────────────────────────
+   `Get-Author | Format-List` prints `Name : Value` with the colons
+   aligned in a column. Reproducing that alignment is what makes the
+   block read as output rather than as a styled definition list — so
+   the labels get a fixed character width and the colon is generated,
+   never typed into the markup.
+   ────────────────────────────────────────────────────────────────── */
+/* The rule and the space above belong to the command, not to its
+   output — the block is one unit: prompt, then what it printed. */
+.hero-meta-block {
+  padding-top: 1.75rem;
   border-top: 1px solid var(--rule);
 }
 
-.hero-meta-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.hero-meta-cmd {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.hero-meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.9rem;
+  row-gap: 0.45rem;
+  align-items: baseline;
+  margin: 0;
   font-family: var(--mono);
   font-size: 0.875rem;
 }
-.meta-label {
-  color: var(--fg-dim);
-  font-size: 0.75rem;
+
+/* Contents, not a box: the label and the value must be siblings in the
+   outer grid for the colons to line up across rows. */
+.hero-meta-item {
+  display: contents;
 }
+
+/* Format-List pads every name out to the longest one before printing
+   ` : `, so the colons form a column. A min-width alone does not do
+   that — the text and its colon still sit flush left inside a wider
+   box, which is why these read as ragged. Pushing the generated colon
+   to the far edge of that box with `margin-left: auto` is what puts it
+   in the same column on every row. */
+.meta-label {
+  grid-column: 1;
+  display: flex;
+  min-width: 9ch;
+  color: var(--c-cyan);
+  margin: 0;
+}
+.meta-label::after {
+  content: ":";
+  margin-left: auto;
+  padding-left: 1ch;
+  color: var(--fg-dim);
+}
+
 .meta-value {
+  grid-column: 2;
   color: var(--fg);
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -237,8 +583,9 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 8px var(--accent), 0 0 18px rgba(202, 223, 158, 0.45);
+  box-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent-glow);
   animation: pulse 2s ease-in-out infinite;
+  flex: none;
 }
 @keyframes pulse {
   0%,
@@ -246,7 +593,7 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.35;
   }
 }
 
@@ -260,8 +607,7 @@
   text-shadow: 0 0 8px var(--accent);
 }
 
-/* Tells the reader the page rewards scrolling before the first seam
-   does it for them. */
+/* Tells the reader the page rewards scrolling. */
 .hero-scroll-hint {
   display: flex;
   align-items: center;
@@ -302,104 +648,60 @@
   max-width: var(--measure);
 }
 .about-lead {
-  font-family: var(--display);
-  font-size: 1.4rem;
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
+  font-family: var(--mono);
+  font-size: 1.02rem;
+  line-height: 1.75;
+  margin: 0 0 1.5rem;
   color: var(--fg);
-  font-weight: 300;
+  font-weight: 500;
+  border-left: 2px solid var(--accent);
+  padding-left: 1.1rem;
 }
 .about-body p {
   color: var(--fg-muted);
+  font-size: 0.925rem;
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   CODE WINDOW
+   SOURCE VIEWER
    ────────────────────────────────────────────────────────────────── */
-.code-window {
-  max-width: 900px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(202, 223, 158, 0.04),
-    inset 0 0 80px rgba(202, 223, 158, 0.025);
-  position: relative;
-  z-index: 1;
-}
-
-.code-window::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.16) 3px,
-    rgba(0, 0, 0, 0) 4px
-  );
-  opacity: 0.55;
-  z-index: 2;
-  border-radius: inherit;
-}
-
-.code-titlebar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid var(--rule);
-}
-.dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  opacity: 0.7;
-}
-.dot-r {
-  background: #b35a47;
-}
-.dot-y {
-  background: #b3a347;
-}
-.dot-g {
-  background: #7ba347;
-}
-.code-filename {
-  margin-left: 1rem;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--fg-dim);
-}
-
-.code-body {
-  margin: 0;
-  padding: 1.5rem 1.5rem 1.5rem 1rem;
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--fg);
-  overflow-x: auto;
-}
 .code-line {
   white-space: pre;
+  position: relative;
+}
+
+/* Gutter line numbers, generated rather than authored so the markup
+   stays copy-pasteable — a selection of the block picks up the code
+   and none of the numbering. */
+.code-body {
+  counter-reset: ln;
+}
+.code-line::before {
+  counter-increment: ln;
+  content: counter(ln);
+  display: inline-block;
+  width: 3ch;
+  margin-right: 1.5ch;
+  text-align: right;
+  color: var(--fg-dim);
+  opacity: 0.45;
+  user-select: none;
 }
 
 .c-kw {
-  color: var(--tea-green);
+  color: var(--c-magenta);
 }
 .c-type {
-  color: var(--ash-grey);
+  color: var(--c-cyan);
 }
 .c-fn {
-  color: var(--fg);
+  color: var(--c-yellow);
+}
+.c-str {
+  color: var(--accent-bright);
 }
 .c-comment {
-  color: var(--grey-olive);
+  color: var(--fg-dim);
   font-style: italic;
 }
 
@@ -449,52 +751,57 @@
 
 .experience-year {
   font-family: var(--mono);
-  font-size: 0.875rem;
-  color: var(--fg-dim);
-  padding-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--c-cyan);
+  padding-top: 0.55rem;
 }
 
 .experience-role {
   font-family: var(--display);
-  font-style: italic;
-  font-size: 1.75rem;
-  font-weight: 400;
+  font-style: normal;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  font-weight: 700;
   letter-spacing: -0.01em;
-  margin-bottom: 0.25rem;
+  margin: 0 0 0.35rem;
   color: var(--fg);
 }
 
 .experience-company {
   font-family: var(--mono);
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   color: var(--accent);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem;
+}
+.experience-company::before {
+  content: "@ ";
+  color: var(--fg-dim);
 }
 
 .experience-stack {
   font-family: var(--mono);
   font-size: 0.75rem;
   color: var(--fg-dim);
-  margin-bottom: 1rem;
-  letter-spacing: 0.02em;
+  margin: 0 0 1rem;
+  letter-spacing: 0.01em;
 }
 
 .experience-desc {
   color: var(--fg-muted);
   max-width: var(--measure);
   font-family: var(--mono);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   MARQUEE
+   MARQUEE — the status ticker
    ────────────────────────────────────────────────────────────────── */
 .marquee {
   overflow: hidden;
-  padding: 1.5rem 0;
+  padding: 0.9rem 0;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
-  background: var(--bg-soft);
+  background: var(--bg-chrome);
 }
 
 .marquee-track {
@@ -505,21 +812,22 @@
 
 .marquee-content {
   font-family: var(--mono);
-  font-size: clamp(1rem, 1.5vw, 1.25rem);
+  font-size: clamp(0.75rem, 1.1vw, 0.875rem);
   padding-right: 1rem;
-  color: var(--fg);
+  color: var(--fg-muted);
   display: inline-flex;
   align-items: center;
   gap: 1rem;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .marquee-dot {
   color: var(--accent);
-  font-size: 0.6em;
+  font-size: 0.75em;
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   STACK
+   STACK — `Get-Module -ListAvailable` output
    ────────────────────────────────────────────────────────────────── */
 .stack-wrap {
   grid-column: 1 / -1;
@@ -528,7 +836,7 @@
 .stack-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--rule);
@@ -536,21 +844,28 @@
 
 .stack-filter {
   appearance: none;
-  background: none;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  padding: 0.35rem 0.9rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--rule-hard);
+  border-radius: 2px;
+  padding: 0.35rem 0.85rem;
   font-family: var(--mono);
   font-size: 0.75rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   color: var(--fg-dim);
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
+/* The filters read as switch parameters, which is what they are. */
+.stack-filter::before {
+  content: "-";
+  color: var(--fg-dim);
+  margin-right: 0.15ch;
+}
+
 .stack-filter:hover {
   color: var(--fg);
-  border-color: var(--fg-dim);
+  border-color: var(--accent-dim);
 }
 
 .stack-filter:focus-visible {
@@ -562,12 +877,16 @@
   color: var(--bg);
   background: var(--accent);
   border-color: var(--accent);
+  font-weight: 700;
+}
+.stack-filter[data-active]::before {
+  color: var(--bg);
 }
 
 .stack-categories {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 2.25rem;
 }
 
 .stack-category {
@@ -580,96 +899,73 @@
 .stack-label {
   font-family: var(--mono);
   font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  color: var(--fg-dim);
-  padding-top: 0.6rem;
+  letter-spacing: 0.04em;
+  color: var(--c-cyan);
+  padding-top: 0.55rem;
+  margin: 0;
 }
 .stack-label::before {
-  content: "// ";
-  color: var(--accent);
+  content: "-";
+  color: var(--fg-dim);
 }
 
 .stack-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .stack-chip {
   display: inline-block;
-  padding: 0.4rem 0.9rem;
+  padding: 0.35rem 0.8rem;
   font-family: var(--mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--fg);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--rule-hard);
   background: var(--bg-soft);
-  border-radius: 4px;
+  border-radius: 2px;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease, box-shadow 0.2s ease;
   cursor: default;
 }
 .stack-chip:hover {
-  background: var(--accent);
-  color: var(--bg);
+  background: var(--accent-wash);
+  color: var(--accent-bright);
   border-color: var(--accent);
   transform: translateY(-2px);
+  box-shadow: 0 0 14px rgba(53, 208, 127, 0.18);
 }
 
 /* ──────────────────────────────────────────────────────────────────
    SQL
    ────────────────────────────────────────────────────────────────── */
-.sql-intro {
+.sample-intro {
   max-width: var(--measure);
-  margin-bottom: 2.5rem;
+  margin: 0 0 2.25rem;
   color: var(--fg-muted);
-  font-family: var(--display);
-  font-size: 1.15rem;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.sql-block {
-  background: var(--bg-elevated);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--accent);
-  border-radius: 4px;
-  padding: 2rem;
-  max-width: 900px;
   font-family: var(--mono);
-  font-size: 0.95rem;
-  line-height: 1.8;
-  color: var(--fg);
-  overflow-x: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3),
-    inset 0 0 60px rgba(202, 223, 158, 0.025);
-  position: relative;
-  z-index: 1;
+  font-size: 0.925rem;
+  font-weight: 400;
+  font-style: normal;
 }
-
-.sql-block::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.14) 3px,
-    rgba(0, 0, 0, 0) 4px
-  );
-  opacity: 0.5;
-  z-index: 2;
-  border-radius: inherit;
+.sample-intro::before {
+  content: "# ";
+  color: var(--accent-dim);
 }
 
 .sql-keyword {
-  color: var(--tea-green);
-  font-weight: 500;
+  color: var(--c-magenta);
+  font-weight: 600;
+}
+.sql-fn {
+  color: var(--c-yellow);
+}
+.sql-obj {
+  color: var(--c-cyan);
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   PROJECTS
+   PROJECTS — `Get-ChildItem .\projects` output
    ────────────────────────────────────────────────────────────────── */
 .projects-list {
   grid-column: 1 / -1;
@@ -677,54 +973,108 @@
   z-index: 1;
 }
 
-.project {
+/* The `dir` column header. Decorative — the real headings live on each
+   row — so the markup hides it from assistive tech. */
+.projects-head {
   display: grid;
   grid-template-columns: var(--rail) minmax(0, 1fr) 60px;
   column-gap: var(--gutter);
-  padding: 2.5rem 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  padding-bottom: 0.5rem;
+}
+
+.project {
+  /* Containing block for the stretched title link below. */
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr) 60px;
+  column-gap: var(--gutter);
+  padding: 2.25rem 0;
   border-top: 1px solid var(--rule);
   align-items: baseline;
   transition: padding 0.3s ease, background 0.3s ease;
-  cursor: pointer;
 }
 .project:last-child {
   border-bottom: 1px solid var(--rule);
 }
 
-.project:hover {
-  padding-left: 1.5rem;
-  background: linear-gradient(90deg, rgba(202, 223, 158, 0.04), transparent 60%);
+/* ── The row as a hit area ────────────────────────────────────────
+   This row was always dressed as a clickable card — pointer cursor, a
+   hover wash, an arrow that slides — but nothing was ever wired to it,
+   so all of that was a promise the markup could not keep. Stretching
+   the title's link across the row makes the dressing true, and does it
+   with the one anchor that already carries the destination and the
+   accessible name rather than a second, redundant control.
+
+   The dressing is gated on `data-linked` so a project without a URL
+   stays visibly inert instead of inviting a click that goes nowhere.
+   ────────────────────────────────────────────────────────────────── */
+.project[data-linked] {
+  cursor: pointer;
 }
-.project:hover .project-arrow {
+
+.project[data-linked] .link-out::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.project[data-linked]:hover {
+  padding-left: 1.5rem;
+  background: linear-gradient(90deg, var(--accent-wash), transparent 60%);
+}
+.project[data-linked]:hover .project-arrow {
   color: var(--accent);
   transform: translateX(8px);
 }
-.project:hover .project-title {
-  color: var(--accent);
+.project[data-linked]:hover .project-title {
+  color: var(--accent-bright);
+  text-shadow: 0 0 12px rgba(53, 208, 127, 0.3);
 }
 
-.project-num {
+/* Keyboard parity: tabbing to the title should light the row the same
+   way hovering it does, since they are now the same target. */
+.project:focus-within {
+  padding-left: 1.5rem;
+  background: linear-gradient(90deg, var(--accent-wash), transparent 60%);
+}
+.project:focus-within .project-arrow {
+  color: var(--accent);
+  transform: translateX(8px);
+}
+
+/* The `dir` mode column: `d----` as PowerShell prints it for a
+   directory, with the index kept alongside. */
+.project-mode {
   font-family: var(--mono);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   color: var(--fg-dim);
+  white-space: nowrap;
+}
+.project-mode b {
+  color: var(--c-cyan);
+  font-weight: 400;
 }
 
 .project-category {
   font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
   color: var(--fg-dim);
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem;
 }
 
 .project-title {
   font-family: var(--display);
-  font-style: italic;
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-  font-weight: 400;
+  font-style: normal;
+  font-size: clamp(1.2rem, 2.4vw, 1.75rem);
+  font-weight: 700;
   letter-spacing: -0.02em;
-  margin-bottom: 0.75rem;
-  transition: color 0.3s ease;
+  margin: 0 0 0.7rem;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
   color: var(--fg);
 }
 
@@ -732,12 +1082,13 @@
   color: var(--fg-muted);
   max-width: var(--measure);
   font-family: var(--mono);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .project-arrow {
-  font-family: var(--display);
-  font-size: 2rem;
+  font-family: var(--mono);
+  font-size: 1.25rem;
   text-align: right;
   transition: transform 0.3s ease, color 0.3s ease;
   color: var(--fg-dim);
@@ -747,7 +1098,7 @@
    FOOTER
    ────────────────────────────────────────────────────────────────── */
 .footer {
-  padding: 8rem clamp(1.25rem, 6vw, 5rem) 4rem;
+  padding: 8rem clamp(1.25rem, 6vw, 5rem) 3rem;
   background: linear-gradient(180deg, var(--bg) 0%, var(--bg-elevated) 100%);
   border-top: 1px solid var(--rule);
   position: relative;
@@ -760,31 +1111,33 @@
 
 .footer-kicker {
   font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 1.75rem;
 }
 
 .footer-title {
   font-family: var(--display);
-  font-style: italic;
-  font-weight: 400;
-  font-size: clamp(2.5rem, 7vw, 6rem);
-  line-height: 1;
-  letter-spacing: -0.03em;
-  margin-bottom: 3rem;
+  font-style: normal;
+  font-weight: 800;
+  font-size: clamp(1.6rem, 5.5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  margin: 0 0 2.5rem;
   color: var(--fg);
+  text-shadow: 0 0 26px rgba(53, 208, 127, 0.14);
 }
 
 .footer-email {
   display: inline-block;
-  font-family: var(--display);
-  font-style: italic;
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-family: var(--mono);
+  font-style: normal;
+  font-weight: 500;
+  font-size: clamp(1rem, 2.2vw, 1.5rem);
   margin-bottom: 3rem;
   color: var(--accent);
-  border-color: rgba(202, 223, 158, 0.3);
+  border-color: rgba(53, 208, 127, 0.3);
 }
 
 .footer-links {
@@ -792,25 +1145,40 @@
   gap: 2rem;
   flex-wrap: wrap;
   font-family: var(--mono);
-  font-size: 0.875rem;
-  margin-bottom: 6rem;
+  font-size: 0.85rem;
+  margin-bottom: 5rem;
+}
+
+/* ── Status line ──────────────────────────────────────────────────
+   The page signs off the way a shell does: the last command's exit
+   code, then a prompt waiting for the next one. */
+.footer-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--fg-dim);
+  border-top: 1px solid var(--rule);
+  padding-top: 1.5rem;
+  margin: 0 0 0.9rem;
+}
+.footer-status b {
+  color: var(--accent);
+  font-weight: 500;
 }
 
 .footer-copy {
   font-family: var(--mono);
   font-size: 0.75rem;
   color: var(--fg-dim);
-  border-top: 1px solid var(--rule);
-  padding-top: 2rem;
+  margin: 0;
 }
 
 /* ──────────────────────────────────────────────────────────────────
    RESPONSIVE
    ────────────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-meta {
-    gap: 2rem;
-  }
   .timeline {
     padding-left: 1.5rem;
   }
@@ -822,44 +1190,67 @@
 @media (max-width: 720px) {
   .resume {
     font-size: 15px;
+    --measure: 46ch;
   }
 
   .hero {
-    gap: 1.5rem;
+    gap: 1.35rem;
     padding: 3rem 0;
   }
   .hero-name {
-    letter-spacing: -0.02em;
+    font-size: clamp(2rem, 13vw, 3.6rem);
+    letter-spacing: -0.03em;
   }
   .hero-tagline {
-    font-size: clamp(1.05rem, 4.2vw, 1.35rem);
+    font-size: 0.9rem;
+  }
+  .hero-meta-block {
+    padding-top: 1.35rem;
+  }
+  .hero-meta-cmd {
+    font-size: 0.75rem;
+  }
+  /* The prompt path is the least informative half of the command and
+     the first thing to go when the line stops fitting. */
+  .hero-meta-cmd .ps-path,
+  .boot-line .ps-path {
+    display: none;
   }
   .hero-meta {
-    flex-direction: column;
-    gap: 1.25rem;
-    padding-top: 1.5rem;
+    font-size: 0.8rem;
+    column-gap: 0.6rem;
+  }
+  .meta-label {
+    min-width: 8ch;
   }
 
   .about-lead {
-    font-size: 1.15rem;
+    font-size: 0.95rem;
+    padding-left: 0.85rem;
   }
 
-  .code-window,
-  .sql-block {
-    border-radius: 6px;
+  .term {
+    border-radius: 5px;
   }
-  .code-body {
-    font-size: 0.78rem;
-    padding: 1rem 1rem 1rem 0.75rem;
-    line-height: 1.6;
-  }
-  .sql-block {
-    font-size: 0.78rem;
-    padding: 1.1rem 1rem;
+  .term__body {
+    font-size: 0.72rem;
+    padding: 1rem 0.9rem 1.1rem;
     line-height: 1.65;
   }
-  .sql-intro {
-    font-size: 1rem;
+  .code-line::before {
+    width: 2ch;
+    margin-right: 1ch;
+  }
+  .term__tab {
+    padding: 0.5rem 0.75rem;
+  }
+  .term__newtab,
+  .term__controls span {
+    padding: 0 0.55rem;
+  }
+
+  .sample-intro {
+    font-size: 0.9rem;
     margin-bottom: 1.5rem;
   }
 
@@ -875,74 +1266,84 @@
     left: -1.55rem;
     top: 1.75rem;
   }
+  .experience-year {
+    padding-top: 0;
+  }
   .experience-role {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
   }
 
   .stack-category {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: 0.75rem;
+    row-gap: 0.6rem;
   }
   .stack-label {
     padding-top: 0;
   }
   .stack-chip {
-    font-size: 0.78rem;
-    padding: 0.35rem 0.75rem;
+    font-size: 0.74rem;
+    padding: 0.3rem 0.65rem;
   }
 
+  .projects-head {
+    display: none;
+  }
   .project {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: 56px minmax(0, 1fr);
     column-gap: 0.75rem;
-    padding: 1.75rem 0;
+    padding: 1.6rem 0;
   }
   .project-arrow {
     display: none;
   }
-  .project:hover {
+  /* No room to shift the row inward on a phone, and no hover to do it
+     with — but focus still lands here via the keyboard. */
+  .project[data-linked]:hover,
+  .project:focus-within {
     padding-left: 0;
   }
+  .project-mode {
+    font-size: 0.7rem;
+  }
   .project-title {
-    font-size: clamp(1.4rem, 6.5vw, 2rem);
+    font-size: clamp(1.05rem, 4.6vw, 1.4rem);
   }
   .project-desc {
-    font-size: 0.85rem;
-  }
-
-  .marquee-content {
-    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    font-size: 0.82rem;
   }
 
   .footer {
-    padding: 5rem 5vw 3rem;
+    padding: 5rem 5vw 2.5rem;
   }
   .footer-title {
-    font-size: clamp(2rem, 9vw, 3.25rem);
+    font-size: clamp(1.4rem, 8vw, 2.4rem);
     margin-bottom: 2rem;
   }
   .footer-email {
-    font-size: clamp(1.1rem, 5vw, 1.75rem);
+    font-size: clamp(0.9rem, 4vw, 1.2rem);
   }
   .footer-links {
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .footer-status {
+    gap: 0.2rem 1rem;
   }
 }
 
 @media (max-width: 380px) {
-  .hero-name {
-    font-size: clamp(2.5rem, 15vw, 3.8rem);
-  }
   .stack-chip {
-    font-size: 0.72rem;
-    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+    padding: 0.28rem 0.55rem;
   }
-  .code-body,
-  .sql-block {
-    font-size: 0.72rem;
+  .term__body {
+    font-size: 0.66rem;
   }
   .boot-sequence {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
+  }
+  .hero-meta {
+    font-size: 0.75rem;
   }
 }
 

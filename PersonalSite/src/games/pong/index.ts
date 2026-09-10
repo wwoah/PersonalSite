@@ -7,7 +7,7 @@ const Pong: Game = {
   year: "1972",
   difficulty: 2,
   controls: ["W/S — left paddle", "↑/↓ — right paddle"],
-  accent: "#a4ac96",
+  accent: "#56c7e8",
   component: null,
 };
 

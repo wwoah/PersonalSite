@@ -13,87 +13,85 @@ import ProgressRail from "../components/ProgressRail";
 import type { RailStop } from "../components/ProgressRail";
 import Panel from "../components/panels/Panel";
 import type { PanelMeta } from "../components/panels/Panel";
+import { Prompt, Cmd, PromptLine, TermWindow } from "../components/Term";
 import "./FrontPage.css";
 
 /* ──────────────────────────────────────────────────────────────────
    Section register.
 
-   Each panel needs to know the one after it — the successor's header
-   is what rises through the seam and takes focus. Declaring the whole
-   running order in one place keeps that wiring honest and gives the
-   progress rail its stops for free.
+   Declaring the whole running order in one place keeps the numbering
+   and the headers from drifting apart, and gives the progress rail its
+   stops for free.
+
+   `kicker` is the command the section answers. Every one of them is a
+   cmdlet that would actually run, in the Verb-Noun form PowerShell
+   requires, because a made-up command in a page that is otherwise this
+   literal about the shell is the one thing a reader would catch.
    ────────────────────────────────────────────────────────────────── */
 const META = {
-  hero: { id: "hero", num: "00", kicker: "// intro", title: "Phillip Bishop" },
+  hero: { id: "hero", num: "00", kicker: "Get-Host", title: "Phillip Bishop" },
   about: {
     id: "about",
     num: "01",
-    kicker: "// about",
+    kicker: "Get-Profile",
     title: "Full-stack engineer who actually likes both halves.",
   },
-  code: {
-    id: "code",
+  /* Projects and experience sit directly under the prose, because they
+     are the only sections a stranger can verify without taking any of
+     it on faith. Everything below them is supporting depth for a reader
+     already interested. */
+  work: {
+    id: "work",
     num: "02",
-    kicker: "// how I work",
-    title: "A small sample.",
+    kicker: "Get-ChildItem .\\projects",
+    title: "Things I've built.",
   },
   exp: {
     id: "exp",
     num: "03",
-    kicker: "// experience",
+    kicker: "Get-Experience | Format-Table",
     title: "Where I've shipped.",
+  },
+  code: {
+    id: "code",
+    num: "04",
+    kicker: "Get-Content .\\samples\\*",
+    title: "A sample from each half.",
   },
   stack: {
     id: "stack",
-    num: "04",
-    kicker: "// the stack",
-    title: "What I reach for.",
-  },
-  sql: {
-    id: "sql",
     num: "05",
-    kicker: "// data layer",
-    title: "SQL is still half the job.",
-  },
-  work: {
-    id: "work",
-    num: "06",
-    kicker: "// selected work",
-    title: "Things I've built.",
+    kicker: "Get-Module -ListAvailable",
+    title: "What I reach for.",
   },
   contact: {
     id: "contact",
-    num: "07",
-    kicker: "// contact",
+    num: "06",
+    kicker: "Send-MailMessage",
     title: "Let's build something.",
   },
 } satisfies Record<string, PanelMeta>;
 
+/* The rail sets these vertically in a ~14ch column, so they are the
+   command's subject rather than the command itself. */
 const RAIL_STOPS: RailStop[] = [
-  { id: "hero", num: "00", label: "intro" },
-  { id: "about", num: "01", label: "about" },
-  { id: "code", num: "02", label: "how I work" },
+  { id: "hero", num: "00", label: "host" },
+  { id: "about", num: "01", label: "profile" },
+  { id: "work", num: "02", label: "projects" },
   { id: "exp", num: "03", label: "experience" },
-  { id: "stack", num: "04", label: "the stack" },
-  { id: "sql", num: "05", label: "data layer" },
-  { id: "work", num: "06", label: "selected work" },
-  { id: "contact", num: "07", label: "contact" },
+  { id: "code", num: "04", label: "samples" },
+  { id: "stack", num: "05", label: "modules" },
+  { id: "contact", num: "06", label: "contact" },
 ];
 
 const EXPERIENCE = [
   {
-    year: "2023 — Now",
-    role: "Senior Full-Stack Engineer",
-    company: "Company Name",
-    stack: "React · TypeScript · C# · .NET 8 · EF Core · SQL Server · Azure",
-    desc: "Owned the customer-facing app end to end. Rebuilt the React frontend in TypeScript with proper component boundaries and a typed API layer, and migrated the .NET 4.7 backend to .NET 8 — together cutting p95 page-render time by 60% and infrastructure cost by a third.",
-  },
-  {
-    year: "2020 — 2023",
-    role: "Full-Stack Developer",
-    company: "Company Name",
+    year: "2024 — 2026",
+    role: "Full-Stack Software Developer",
+    company: "ELB US, Inc.",
+    companyLink: "https://www.elbeducation.com/",
     stack: "React · TypeScript · C# · .NET Framework · EF6 · T-SQL",
-    desc: "Built the billing and reporting modules of a B2B SaaS product on both sides of the API. Authored ~80 stored procedures and tuned indexes that took our worst report from 90s to 2s, while shipping the React dashboard that visualized the results.",
+    desc: "Completed the creation of an inhouse ERP/accounting software web application. Front end was created using React with TypeScript heavily styled with the Mantine React UI library. Backend support included C# and .NET for api calls and database communication. All data was stored in a SQL database.",
   },
 ];
 
@@ -104,11 +102,11 @@ const STACK = [
   },
   {
     label: "Frontend",
-    chips: ["React", "Vite", "GSAP", "Tailwind", "CSS Modules", "React Router", "Zustand"],
+    chips: ["React", "Vite", "GSAP", "Tailwind", "CSS Modules", "React Router"],
   },
   {
     label: "Backend",
-    chips: [".NET 8", ".NET Framework", "ASP.NET Web API", "ASP.NET MVC", "Blazor", "REST", "SignalR"],
+    chips: [".NET 8", ".NET Framework", "ASP.NET Web API", "ASP.NET MVC", "Blazor", "REST"],
   },
   {
     label: "Data",
@@ -123,29 +121,114 @@ const STACK = [
 const PROJECTS = [
   {
     num: "001",
-    title: "Project Name",
-    category: "Full-Stack · React · TypeScript · .NET 8",
-    desc: "End-to-end build — typed API layer, React frontend with optimistic UI, EF Core data layer. Brief description of what you built, what problem it solved, and the impact (latency, conversion, etc).",
+    title: "InkSync",
+    category: "React · TypeScript",
+    desc: "A hub for collabrative drawing features, such as a live canvas, private chat rooms and a drawing guessing minigame.",
+    link: "https://inksync-1-o3dk.onrender.com/",
   },
   {
     num: "002",
-    title: "Project Name",
-    category: "Frontend · React · TypeScript · GSAP",
-    desc: "A scroll-driven UI you'd point to as proof you care about the frontend. Mention the tricky bits — animation performance, accessibility tradeoffs, state machine design.",
-  },
-  {
-    num: "003",
-    title: "Project Name",
-    category: "Migration · .NET Framework → .NET 8 + React rebuild",
-    desc: "Migration story across both halves. Always good to have one of these — shows you can modernize legacy systems on both the API and UI without breaking production.",
-  },
-  {
-    num: "004",
     title: "Peel Riot",
     category: "MongoDB · Typescript - React · GSAP",
     desc: "Purely custom sticker website. Slight plug, but still worth highlighting.",
+    link: "https://peelriot.com",
   },
 ];
+
+/* ──────────────────────────────────────────────────────────────────
+   SAMPLES
+
+   One window, two files. These were two full sections — a TypeScript
+   one and a T-SQL one — which between them spent a quarter of the page
+   on code that demonstrates style rather than evidencing work. Behind
+   tabs they make the same point in one section and the height of the
+   taller of the two.
+
+   The tab strip was always drawn here; it just did not do anything.
+   Now it does, which is both the honest reading of that chrome and the
+   reason the merge costs no new furniture.
+   ────────────────────────────────────────────────────────────────── */
+const SAMPLE_TABS = [
+  { id: "ts", label: "useUser.ts" },
+  { id: "sql", label: "top-orders.sql" },
+];
+
+function Samples() {
+  const [tab, setTab] = useState("ts");
+
+  return (
+    <>
+      <p className="sample-intro">
+        Both halves of the same request: the hook the interface calls, and
+        the query it ultimately lands on.
+      </p>
+
+      <TermWindow
+        id="samples"
+        className="code-window"
+        tabs={SAMPLE_TABS}
+        active={tab}
+        onSelect={setTab}
+      >
+        <div className="term__body">
+          {/* Both tabs are a file listing, so both open with the same
+              command — `Get-Content` prints a file, which is what the
+              line numbers below are numbering. */}
+          <PromptLine
+            cmd={
+              tab === "ts"
+                ? "Get-Content .\\src\\hooks\\useUser.ts"
+                : "Get-Content .\\sql\\top-orders.sql"
+            }
+            caret={false}
+          />
+
+          {tab === "ts" ? (
+            <pre className="code-body">
+              <code>
+                <div className="code-line"><span className="c-kw">type</span> <span className="c-type">User</span> = {"{"} id: <span className="c-type">number</span>; name: <span className="c-type">string</span>; roles: <span className="c-type">string</span>[] {"}"};</div>
+                <div className="code-line">&nbsp;</div>
+                <div className="code-line"><span className="c-kw">export function</span> <span className="c-fn">useUser</span>(id: <span className="c-type">number</span>) {"{"}</div>
+                <div className="code-line">  <span className="c-kw">const</span> [user, setUser] = <span className="c-fn">useState</span>&lt;<span className="c-type">User</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
+                <div className="code-line">  <span className="c-kw">const</span> [error, setError] = <span className="c-fn">useState</span>&lt;<span className="c-type">Error</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
+                <div className="code-line">&nbsp;</div>
+                <div className="code-line">  <span className="c-fn">useEffect</span>(() =&gt; {"{"}</div>
+                <div className="code-line">    <span className="c-kw">const</span> ctrl = <span className="c-kw">new</span> <span className="c-fn">AbortController</span>();</div>
+                <div className="code-line">    <span className="c-fn">fetch</span>(<span className="c-str">{"`/api/users/${id}`"}</span>, {"{"} signal: ctrl.signal {"}"})</div>
+                <div className="code-line">      .<span className="c-fn">then</span>(r =&gt; r.<span className="c-fn">json</span>() <span className="c-kw">as</span> <span className="c-type">Promise</span>&lt;<span className="c-type">User</span>&gt;)</div>
+                <div className="code-line">      .<span className="c-fn">then</span>(setUser, setError);</div>
+                <div className="code-line">    <span className="c-kw">return</span> () =&gt; ctrl.<span className="c-fn">abort</span>();</div>
+                <div className="code-line">  {"}"}, [id]);</div>
+                <div className="code-line">&nbsp;</div>
+                <div className="code-line">  <span className="c-kw">return</span> {"{"} user, error {"}"};</div>
+                <div className="code-line">{"}"}</div>
+              </code>
+            </pre>
+          ) : (
+            <pre className="code-body">
+              <code>
+                <div className="code-line"><span className="sql-keyword">WITH</span> <span className="sql-obj">RankedOrders</span> <span className="sql-keyword">AS</span> (</div>
+                <div className="code-line">    <span className="sql-keyword">SELECT</span> o.CustomerId, o.OrderId, o.TotalAmount,</div>
+                <div className="code-line">        <span className="sql-fn">ROW_NUMBER</span>() <span className="sql-keyword">OVER</span> (</div>
+                <div className="code-line">            <span className="sql-keyword">PARTITION BY</span> o.CustomerId</div>
+                <div className="code-line">            <span className="sql-keyword">ORDER BY</span> o.OrderDate <span className="sql-keyword">DESC</span></div>
+                <div className="code-line">        ) <span className="sql-keyword">AS</span> rn</div>
+                <div className="code-line">    <span className="sql-keyword">FROM</span> <span className="sql-obj">dbo.Orders</span> o</div>
+                <div className="code-line">    <span className="sql-keyword">WHERE</span> o.OrderDate &gt;= <span className="sql-fn">DATEADD</span>(<span className="sql-keyword">MONTH</span>, -6, <span className="sql-fn">GETUTCDATE</span>())</div>
+                <div className="code-line">)</div>
+                <div className="code-line"><span className="sql-keyword">SELECT</span> c.CustomerName, r.OrderId, r.TotalAmount</div>
+                <div className="code-line"><span className="sql-keyword">FROM</span> <span className="sql-obj">RankedOrders</span> r</div>
+                <div className="code-line"><span className="sql-keyword">INNER JOIN</span> <span className="sql-obj">dbo.Customers</span> c <span className="sql-keyword">ON</span> c.CustomerId = r.CustomerId</div>
+                <div className="code-line"><span className="sql-keyword">WHERE</span> r.rn = 1</div>
+                <div className="code-line"><span className="sql-keyword">ORDER BY</span> r.TotalAmount <span className="sql-keyword">DESC</span>;</div>
+              </code>
+            </pre>
+          )}
+        </div>
+      </TermWindow>
+    </>
+  );
+}
 
 /* ──────────────────────────────────────────────────────────────────
    HERO
@@ -189,8 +272,8 @@ function Hero() {
           {
             duration: 1.1,
             scrambleText: {
-              text: "→ full-stack engineer · React · TypeScript · .NET",
-              chars: "01·/<>_",
+              text: "phillip\\full-stack · react · typescript · .NET · sql",
+              chars: "01<>/\\$_",
               speed: 0.7,
               revealDelay: 0.25,
             },
@@ -203,9 +286,14 @@ function Hero() {
           "-=0.7"
         )
         .from(q(".hero-tagline"), { opacity: 0, y: 20, duration: 0.8 }, "-=0.35")
+        /* The Format-List block reveals as one unit with the command
+           that produced it. `.hero-meta-item` is `display: contents`
+           so the colons line up across rows — a contents box has no
+           box to transform, which is why the stagger targets the
+           label and value cells themselves. */
         .from(
-          q(".hero-meta-item"),
-          { opacity: 0, y: 15, duration: 0.5, stagger: 0.08 },
+          q(".hero-meta-cmd, .hero-meta-item > *"),
+          { opacity: 0, y: 12, duration: 0.45, stagger: 0.045 },
           "-=0.4"
         )
         .from(q(".hero-scroll-hint"), { opacity: 0, y: 10, duration: 0.5 }, "-=0.15");
@@ -227,48 +315,61 @@ function Hero() {
     <div className="hero" ref={root}>
       <div className="boot-sequence" data-hero data-speed="1.06">
         <p className="boot-line">
-          <span className="prompt">$</span> whoami
+          <Prompt /> <Cmd text="whoami" />
         </p>
         <p className="boot-line boot-output boot-scramble">&nbsp;</p>
-        <p className="boot-line">
-          <span className="prompt">$</span> cat ./about.md
-        </p>
       </div>
 
+      {/* Two lines, not one. In monospace "PHILLIP BISHOP" is 8.4em
+          wide on a single line and caps out around 6rem before it
+          overruns the measure; split, it runs to 8.5rem. */}
       <h1 className="hero-name" data-hero>
-        Phillip Bishop
-        <span className="cursor" aria-hidden="true">
-          _
+        <span className="hero-name-line">Phillip</span>
+        <span className="hero-name-line">
+          Bishop
+          <span className="cursor" aria-hidden="true">
+            _
+          </span>
         </span>
       </h1>
 
       <p className="hero-tagline" data-hero data-speed="0.94">
-        I build both ends — the interface you tap and the API it talks to. The
+        I build both ends, the interface you click and the API it talks to. The
         kind of full-stack work where the same person worries about the button's
         hover state and the database index it ultimately hits.
       </p>
 
-      <div className="hero-meta" data-hero>
-        <div className="hero-meta-item">
-          <span className="meta-label">// role</span>
-          <span className="meta-value">Full-Stack Engineer</span>
-        </div>
-        <div className="hero-meta-item">
-          <span className="meta-label">// location</span>
-          <span className="meta-value">Danville, CA</span>
-        </div>
-        <div className="hero-meta-item">
-          <span className="meta-label">// status</span>
-          <span className="meta-value">
-            <span className="status-dot" /> open to work
-          </span>
-        </div>
-        <div className="hero-meta-item">
-          <span className="meta-label">// also</span>
-          <Link to="/arcade" className="arcade-link">
-            ▸ play the arcade
-          </Link>
-        </div>
+      <div className="hero-meta-block" data-hero>
+        <PromptLine
+          cmd="Get-Author | Format-List"
+          className="hero-meta-cmd"
+          caret={false}
+        />
+
+        <dl className="hero-meta">
+          <div className="hero-meta-item">
+            <dt className="meta-label">Role</dt>
+            <dd className="meta-value">Full-Stack Engineer</dd>
+          </div>
+          <div className="hero-meta-item">
+            <dt className="meta-label">Location</dt>
+            <dd className="meta-value">Danville, CA</dd>
+          </div>
+          <div className="hero-meta-item">
+            <dt className="meta-label">Status</dt>
+            <dd className="meta-value">
+              <span className="status-dot" /> Open to work
+            </dd>
+          </div>
+          <div className="hero-meta-item">
+            <dt className="meta-label">Arcade</dt>
+            <dd className="meta-value">
+              <Link to="/arcade" className="arcade-link">
+                .\arcade.exe
+              </Link>
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <p className="hero-scroll-hint" aria-hidden="true" data-hero>
@@ -282,7 +383,9 @@ function Hero() {
    STACK — Flip-driven filtering
 
    Chips reflow rather than repaint when you change category, so the
-   section responds to input, not just to scroll position.
+   section responds to input, not just to scroll position. The filters
+   are styled as switch parameters because that is what they are: one
+   more argument on the Get-Module call in the header.
    ────────────────────────────────────────────────────────────────── */
 function StackBody() {
   const root = useRef<HTMLDivElement>(null);
@@ -404,14 +507,15 @@ function FrontPage() {
     () => {
       const q = gsap.utils.selector(container);
 
-      /* Fraunces arrives after first paint and changes every heading's
-         height. Without this every pin start/end is measured against
-         the fallback serif and drifts once the real font lands. */
+      /* The page is set in one webfont at several weights. It still
+         changes every heading's height when it lands, and without this
+         every pin start/end is measured against the fallback and drifts
+         once the real face arrives. */
       document.fonts?.ready.then(() => ScrollTrigger.refresh());
 
       if (reduceMotion()) return;
 
-      /* Code window */
+      /* Source viewer */
       gsap.from(q(".code-window"), {
         opacity: 0,
         y: 40,
@@ -466,22 +570,11 @@ function FrontPage() {
         });
       });
 
-      /* SQL — keywords ignite as you scroll through the query */
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: ".sql-block",
-            start: "top 78%",
-            end: "bottom 62%",
-            scrub: 1,
-          },
-        })
-        .from(".sql-block", { opacity: 0, y: 30, duration: 1 })
-        .from(
-          ".sql-keyword",
-          { color: "var(--fg-dim)", stagger: 0.4, duration: 0.4 },
-          0.3
-        );
+      /* The query's keywords used to ignite one by one as you scrolled
+         through them. That needed the reader to scroll the length of
+         the block, which is exactly what tabbing the samples together
+         removed — behind a tab the query is either shown or it is not.
+         The keywords simply render lit. */
 
       /* Projects */
       q(".project").forEach((project, i) => {
@@ -524,16 +617,14 @@ function FrontPage() {
       <ProgressRail stops={RAIL_STOPS} />
 
       <SmoothScroll>
-        {/* ── 00 → 01 · SLASH ── */}
-        <Panel {...META.hero} exit="slash" next={META.about} cut={[60, 30]} bare>
+        <Panel {...META.hero} bare>
           <Hero />
         </Panel>
 
-        {/* ── 01 → 02 · DEPTH ── */}
-        <Panel {...META.about} exit="depth" next={META.code}>
+        <Panel {...META.about}>
           <div className="about-body">
             <p className="about-lead">
-              On the back I write C# the way a carpenter measures twice — clean
+              On the back I write C# the way a carpenter measures twice, clean
               DbContexts, stored procedures that return in under 50ms, indexes
               that earn their keep. On the front I build React with TypeScript,
               where I care about component boundaries the same way I care about
@@ -549,42 +640,59 @@ function FrontPage() {
           </div>
         </Panel>
 
-        {/* ── 02 → 03 · WIPE ── */}
-        <Panel {...META.code} exit="wipe" next={META.exp}>
-          <div className="code-window">
-            <div className="code-titlebar">
-              <span className="dot dot-r" />
-              <span className="dot dot-y" />
-              <span className="dot dot-g" />
-              <span className="code-filename">useUser.ts</span>
+        <Panel {...META.work}>
+          <div className="projects-list">
+            {/* The `dir` column header. The real headings are on each
+                row, so this is decoration and is hidden from AT. */}
+            <div className="projects-head" aria-hidden="true">
+              <span>Mode</span>
+              <span>Name</span>
             </div>
-            <pre className="code-body">
-              <code>
-                <div className="code-line"><span className="c-kw">type</span> <span className="c-type">User</span> = {"{"} id: <span className="c-type">number</span>; name: <span className="c-type">string</span>; roles: <span className="c-type">string</span>[] {"}"};</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line"><span className="c-kw">export function</span> <span className="c-fn">useUser</span>(id: <span className="c-type">number</span>) {"{"}</div>
-                <div className="code-line">  <span className="c-kw">const</span> [user, setUser] = <span className="c-fn">useState</span>&lt;<span className="c-type">User</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
-                <div className="code-line">  <span className="c-kw">const</span> [error, setError] = <span className="c-fn">useState</span>&lt;<span className="c-type">Error</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line">  <span className="c-fn">useEffect</span>(() =&gt; {"{"}</div>
-                <div className="code-line">    <span className="c-kw">const</span> ctrl = <span className="c-kw">new</span> <span className="c-fn">AbortController</span>();</div>
-                <div className="code-line">    <span className="c-fn">fetch</span>(`/api/users/${"${id}"}`, {"{"} signal: ctrl.signal {"}"})</div>
-                <div className="code-line">      .<span className="c-fn">then</span>(r =&gt; r.<span className="c-fn">json</span>() <span className="c-kw">as</span> <span className="c-type">Promise</span>&lt;<span className="c-type">User</span>&gt;)</div>
-                <div className="code-line">      .<span className="c-fn">then</span>(setUser, setError);</div>
-                <div className="code-line">    <span className="c-kw">return</span> () =&gt; ctrl.<span className="c-fn">abort</span>();</div>
-                <div className="code-line">  {"}"}, [id]);</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line">  <span className="c-kw">return</span> {"{"} user, error {"}"};</div>
-                <div className="code-line">{"}"}</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line"><span className="c-comment">// Talks to GetActiveUserAsync() on the .NET side.</span></div>
-              </code>
-            </pre>
+
+            {PROJECTS.map((p) => (
+              /* `data-linked` drives the row's clickable dressing —
+                 cursor, hover wash, sliding arrow — so a project with
+                 no link yet stays inert instead of promising a
+                 destination it does not have. */
+              <article
+                key={p.num}
+                className="project"
+                data-linked={p.link ? "" : undefined}
+              >
+                <div className="project-mode" aria-hidden="true">
+                  <b>d----</b> {p.num}
+                </div>
+                <div className="project-body">
+                  <p className="project-category">{p.category}</p>
+                  <h3 className="project-title">
+                    {p.link ? (
+                      <a
+                        className="link-out"
+                        href={p.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {p.title}
+                        <span className="link-out__mark" aria-hidden="true">
+                          ↗
+                        </span>
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    ) : (
+                      p.title
+                    )}
+                  </h3>
+                  <p className="project-desc">{p.desc}</p>
+                </div>
+                <div className="project-arrow" aria-hidden="true">
+                  →
+                </div>
+              </article>
+            ))}
           </div>
         </Panel>
 
-        {/* ── 03 → 04 · SLASH (opposite diagonal) ── */}
-        <Panel {...META.exp} exit="slash" next={META.stack} cut={[32, 62]}>
+        <Panel {...META.exp}>
           <div className="timeline">
             <div className="timeline-line" />
             {EXPERIENCE.map((job) => (
@@ -592,7 +700,31 @@ function FrontPage() {
                 <div className="experience-year">{job.year}</div>
                 <div className="experience-body">
                   <h3 className="experience-role">{job.role}</h3>
-                  <p className="experience-company">{job.company}</p>
+                  <p className="experience-company">
+                    {job.companyLink ? (
+                      <a
+                        className="link-out"
+                        href={job.companyLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {job.company}
+                        {/* The arrow is in the markup rather than a CSS
+                            ::after so it can be hidden from the
+                            accessibility tree outright — screen readers
+                            announce generated content inconsistently,
+                            and "north east arrow" is not information. */}
+                        <span className="link-out__mark" aria-hidden="true">
+                          ↗
+                        </span>
+                        {/* A link that opens elsewhere should say so, and
+                            saying it invisibly costs the layout nothing. */}
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    ) : (
+                      job.company
+                    )}
+                  </p>
                   <p className="experience-stack">{job.stack}</p>
                   <p className="experience-desc">{job.desc}</p>
                 </div>
@@ -601,57 +733,12 @@ function FrontPage() {
           </div>
         </Panel>
 
-        {/* ── 04 → 05 · CURTAIN ── */}
-        <Panel {...META.stack} exit="curtain" next={META.sql}>
+        <Panel {...META.code}>
+          <Samples />
+        </Panel>
+
+        <Panel {...META.stack}>
           <StackBody />
-        </Panel>
-
-        {/* ── 05 → 06 · SLASH (shallow) ── */}
-        <Panel {...META.sql} exit="slash" next={META.work} cut={[50, 22]}>
-          <p className="sql-intro">
-            The UI is only as fast as the query feeding it. A real one I'd ship —
-            window functions, a CTE, and a covering index in mind. Scroll slowly
-            to see each keyword come alive.
-          </p>
-
-          <pre className="sql-block">
-            <code>
-              <div><span className="sql-keyword">WITH</span> RankedOrders <span className="sql-keyword">AS</span> (</div>
-              <div>    <span className="sql-keyword">SELECT</span></div>
-              <div>        o.CustomerId,</div>
-              <div>        o.OrderId,</div>
-              <div>        o.TotalAmount,</div>
-              <div>        <span className="sql-keyword">ROW_NUMBER</span>() <span className="sql-keyword">OVER</span> (</div>
-              <div>            <span className="sql-keyword">PARTITION BY</span> o.CustomerId</div>
-              <div>            <span className="sql-keyword">ORDER BY</span> o.OrderDate <span className="sql-keyword">DESC</span></div>
-              <div>        ) <span className="sql-keyword">AS</span> rn</div>
-              <div>    <span className="sql-keyword">FROM</span> dbo.Orders o <span className="sql-keyword">WITH</span> (<span className="sql-keyword">NOLOCK</span>)</div>
-              <div>    <span className="sql-keyword">WHERE</span> o.OrderDate &gt;= <span className="sql-keyword">DATEADD</span>(<span className="sql-keyword">MONTH</span>, -6, <span className="sql-keyword">GETUTCDATE</span>())</div>
-              <div>)</div>
-              <div><span className="sql-keyword">SELECT</span> c.CustomerName, r.OrderId, r.TotalAmount</div>
-              <div><span className="sql-keyword">FROM</span> RankedOrders r</div>
-              <div><span className="sql-keyword">INNER JOIN</span> dbo.Customers c <span className="sql-keyword">ON</span> c.CustomerId = r.CustomerId</div>
-              <div><span className="sql-keyword">WHERE</span> r.rn = 1</div>
-              <div><span className="sql-keyword">ORDER BY</span> r.TotalAmount <span className="sql-keyword">DESC</span>;</div>
-            </code>
-          </pre>
-        </Panel>
-
-        {/* ── 06 → 07 · DEPTH ── */}
-        <Panel {...META.work} exit="depth" next={META.contact}>
-          <div className="projects-list">
-            {PROJECTS.map((p) => (
-              <article key={p.num} className="project">
-                <div className="project-num">{p.num}</div>
-                <div className="project-body">
-                  <p className="project-category">{p.category}</p>
-                  <h3 className="project-title">{p.title}</h3>
-                  <p className="project-desc">{p.desc}</p>
-                </div>
-                <div className="project-arrow">→</div>
-              </article>
-            ))}
-          </div>
         </Panel>
 
         {/* ── Outro ticker ── */}
@@ -661,11 +748,9 @@ function FrontPage() {
               <span key={i} className="marquee-content">
                 <span className="marquee-dot">●</span> Open to full-stack &amp;
                 frontend roles
-                <span className="marquee-dot">●</span> Remote or hybrid
+                <span className="marquee-dot">●</span> Remote, hybrid or on site
                 <span className="marquee-dot">●</span> React · TypeScript · .NET
                 · SQL Server
-                <span className="marquee-dot">●</span> Available Spring
-                2026&nbsp;
               </span>
             ))}
           </div>
@@ -673,7 +758,9 @@ function FrontPage() {
 
         <footer className="footer" id="contact">
           <div className="footer-content">
-            <p className="footer-kicker">// contact</p>
+            <p className="footer-kicker">
+              <Prompt /> <Cmd text="Send-MailMessage -To phillipkbishop@gmail.com" />
+            </p>
             <h2 className="footer-title">Let's build something.</h2>
             <a href="mailto:phillipkbishop@gmail.com" className="footer-email">
               phillipkbishop@gmail.com
@@ -683,8 +770,22 @@ function FrontPage() {
               <a href="#">LinkedIn</a>
               <a href="#">Resume.pdf</a>
             </div>
+
+            {/* The page signs off the way a shell does. */}
+            <p className="footer-status">
+              <span>
+                ExitCode <b>0</b>
+              </span>
+              <span>
+                pwsh <b>7.4</b>
+              </span>
+              <span>UTF-8</span>
+              <span>
+                sections <b>07/07</b>
+              </span>
+            </p>
             <p className="footer-copy">
-              // built with Typescript - React, and GSAP, deployed on caffeine.
+              # built with TypeScript, React and GSAP. Deployed on caffeine.
             </p>
           </div>
         </footer>

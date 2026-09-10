@@ -1,26 +1,32 @@
 /* ──────────────────────────────────────────────────────────────────
-   ARCADE — CRT/neon dialect of the same palette as the resume
+   ARCADE — the CRT/neon dialect of the terminal palette.
+
+   Same ground and same phosphor green as the resume, but every cabinet
+   gets its own colour from the console's 16 — green, cyan, amber — so
+   the grid reads as a row of different machines rather than one theme
+   repeated three times.
+
+   Only the pixel face is imported here. JetBrains Mono is already
+   linked from index.html, and re-requesting it behind an @import
+   serialises a round trip for a font the document has in hand.
    ────────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 .arcade-root,
 .game-player-root {
-  /* Inherit palette */
-  --charcoal-brown: #313628;
-  --charcoal: #595358;
-  --grey-olive: #857f74;
-  --ash-grey: #a4ac96;
-  --tea-green: #cadf9e;
+  --bg: #08090a;            /* darker than the resume — a dim arcade */
+  --bg-cabinet: #14181a;
+  --bg-screen: #050708;
+  --bg-soft: #1c2124;
 
-  --bg: #1a1d14;            /* darker than the resume — like a dim arcade */
-  --bg-cabinet: #2a2e22;
-  --bg-screen: #0a0d06;
-  --fg: var(--tea-green);
-  --fg-muted: var(--ash-grey);
-  --rule: rgba(202, 223, 158, 0.2);
+  --fg: #d4dad7;
+  --fg-muted: #8a9490;
+  --accent: #35d07f;
+  --rule: rgba(53, 208, 127, 0.2);
 
   --pixel: 'Press Start 2P', ui-monospace, monospace;
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
+  --mono: 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', Consolas,
+    ui-monospace, monospace;
 
   background: var(--bg);
   color: var(--fg);
@@ -89,21 +95,21 @@
   letter-spacing: 0.05em;
 }
 .arcade-marquee-line { margin: 0.2rem 0; }
-.insert-coin { color: var(--tea-green); }
+.insert-coin { color: var(--accent); }
 
 .arcade-title {
   font-family: var(--pixel);
   font-size: clamp(1.75rem, 6.5vw, 4.5rem);   /* was 2rem / 7vw / 5.4rem */
   letter-spacing: 0.05em;
   margin: 0 0 1.5rem;
-  color: var(--tea-green);
+  color: var(--accent);
   line-height: 1;
   padding: 0 0.2em;                            /* room for shadows */
   text-shadow:
-    -2px 0 0 rgba(255, 80, 80, 0.6),
-    2px 0 0 rgba(80, 200, 255, 0.5),
-    0 0 20px rgba(202, 223, 158, 0.5),
-    0 0 40px rgba(202, 223, 158, 0.3);
+    -2px 0 0 rgba(224, 108, 117, 0.6),
+    2px 0 0 rgba(86, 199, 232, 0.5),
+    0 0 20px rgba(53, 208, 127, 0.5),
+    0 0 40px rgba(53, 208, 127, 0.3);
 }
 .arcade-title-char {
   display: inline-block;
@@ -123,7 +129,7 @@
   border: 1px solid var(--rule);
   padding: 0.1rem 0.4rem;
   border-radius: 3px;
-  color: var(--tea-green);
+  color: var(--accent);
   font-size: 0.75rem;
 }
 
@@ -139,8 +145,8 @@
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 .back-to-resume:hover {
-  color: var(--tea-green);
-  border-color: var(--tea-green);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ──────────────────────────────────────────────────────────────────
@@ -261,8 +267,8 @@
   color: var(--cabinet-accent);
   text-shadow:
     0 0 10px var(--cabinet-accent),
-    -1px 0 0 rgba(255, 80, 80, 0.5),
-    1px 0 0 rgba(80, 200, 255, 0.5);
+    -1px 0 0 rgba(224, 108, 117, 0.5),
+    1px 0 0 rgba(86, 199, 232, 0.5);
   position: relative;
   z-index: 1;
   letter-spacing: 0.05em;
@@ -309,7 +315,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--charcoal);
+  background: var(--bg-soft);
   border: 1px solid var(--rule);
 }
 .pip-on {

@@ -11,7 +11,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { SplitText } from "gsap/SplitText";
 import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
-import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { CustomEase } from "gsap/CustomEase";
 import { Flip } from "gsap/Flip";
 import { Observer } from "gsap/Observer";
@@ -21,7 +20,6 @@ gsap.registerPlugin(
   ScrollSmoother,
   SplitText,
   ScrambleTextPlugin,
-  DrawSVGPlugin,
   CustomEase,
   Flip,
   Observer
@@ -47,28 +45,22 @@ CustomEase.create("settle", "M0,0 C0.16,1 0.3,1 1,1");
 /* ──────────────────────────────────────────────────────────────────
    Motion preference
 
-   The seam transitions bisect and rotate the whole viewport in 3D.
-   That is genuinely unpleasant for anyone with a vestibular disorder,
-   so `reduceMotion` is a hard switch that the page checks before it
-   builds a single ScrollTrigger — not an afterthought that dials
-   durations down.
+   A hard switch the page checks before it builds a single
+   ScrollTrigger, not an afterthought that dials durations down: when
+   it is set, every reveal and parallax simply never mounts and the
+   smooth scroller is never created.
+
+   Read live rather than cached, so someone who changes the setting
+   system-wide mid-session gets it on the next render.
    ────────────────────────────────────────────────────────────────── */
-export const motionQuery = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)");
-
-export const reduceMotion = () => motionQuery().matches;
-
-/** Coarse pointers get the transitions, but at reduced travel — a full
- *  3D slash on a phone costs more in jank than it returns in delight. */
-export const isTouch = () =>
-  window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+export const reduceMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export {
   gsap,
   ScrollTrigger,
   ScrollSmoother,
   SplitText,
-  DrawSVGPlugin,
   CustomEase,
   Flip,
   Observer,
