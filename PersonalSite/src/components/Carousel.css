@@ -1,0 +1,246 @@
+/* ──────────────────────────────────────────────────────────────────
+   CAROUSEL — fills its frame; the frame decides the shape.
+
+   The controls sit on the picture, so they bring their own dark,
+   frosted ground: a photo can be any colour behind them.
+   ────────────────────────────────────────────────────────────────── */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Vertical drags still scroll the page; sideways ones are swipes. */
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.carousel__img {
+  /* Positioned, so it sits above a backdrop behind it. */
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Shown whole ────────────────────────────────────────────────── */
+.carousel__img--whole {
+  object-fit: contain;
+}
+
+/* The same picture, enlarged and blurred, filling the frame around
+   one shown whole. Sized past the frame with inset rather than
+   scaled, so the blur's soft edge falls outside it. */
+.carousel__backdrop {
+  position: absolute;
+  inset: -12%;
+  background-position: center;
+  background-size: cover;
+  filter: blur(22px) saturate(1.1) brightness(0.85);
+}
+
+.carousel__backdrop--in {
+  animation: carousel-fade 0.55s ease-out;
+}
+
+@keyframes carousel-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.carousel__img--next {
+  animation: carousel-from-next 0.55s var(--ease-out);
+}
+
+.carousel__img--prev {
+  animation: carousel-from-prev 0.55s var(--ease-out);
+}
+
+@keyframes carousel-from-next {
+  from {
+    opacity: 0;
+    transform: translateX(4%) scale(1.02);
+  }
+}
+
+@keyframes carousel-from-prev {
+  from {
+    opacity: 0;
+    transform: translateX(-4%) scale(1.02);
+  }
+}
+
+/* ── Arrows ─────────────────────────────────────────────────────── */
+.carousel__arrow {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-top: -1.375rem;
+  padding: 0;
+  border: 1px solid rgba(239, 235, 227, 0.35);
+  border-radius: 50%;
+  background: rgba(18, 20, 23, 0.55);
+  color: #f3efe7;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.carousel__arrow--prev {
+  left: 0.75rem;
+}
+
+.carousel__arrow--next {
+  right: 0.75rem;
+}
+
+.carousel__arrow:hover,
+.carousel__arrow:focus-visible {
+  border-color: transparent;
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+.carousel__arrow svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.carousel__arrow--next svg {
+  transform: scaleX(-1);
+}
+
+/* ── Dots ───────────────────────────────────────────────────────── */
+.carousel__dots {
+  position: absolute;
+  left: 50%;
+  bottom: 0.75rem;
+  display: flex;
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(18, 20, 23, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transform: translateX(-50%);
+}
+
+.carousel__dot {
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(243, 239, 231, 0.5);
+  cursor: pointer;
+  transition: width 0.35s var(--ease-out), background-color 0.25s ease;
+}
+
+/* A bigger target than the dot itself, for fingers. */
+.carousel__dot::before {
+  content: "";
+  position: absolute;
+  inset: -0.6rem -0.25rem;
+}
+
+.carousel__dot:hover {
+  background: rgba(243, 239, 231, 0.85);
+}
+
+/* The current one stretches into a bar, so "you are here" reads
+   without counting. */
+.carousel__dot[aria-current] {
+  width: 1.4rem;
+  background: var(--signal);
+}
+
+/* ── Photos coming soon ─────────────────────────────────────────── */
+.carousel--empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  background-color: var(--surface-2);
+  background-image: radial-gradient(color-mix(in srgb, var(--fg) 18%, transparent) 1.2px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+.carousel--empty::after {
+  content: "";
+  position: absolute;
+  inset: 0.75rem;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.carousel__camera {
+  width: 3.25rem;
+  height: 3.25rem;
+  fill: none;
+  stroke: var(--fg);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+.carousel__lens {
+  fill: var(--signal);
+}
+
+.carousel__soon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  font: 500 0.7rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.carousel__soon-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--signal);
+  animation: carousel-pulse 2.4s ease-out infinite;
+}
+
+@keyframes carousel-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--signal) 60%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--signal) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__img--next,
+  .carousel__img--prev,
+  .carousel__backdrop--in,
+  .carousel__soon-dot {
+    animation: none;
+  }
+
+  .carousel__dot,
+  .carousel__arrow {
+    transition: none;
+  }
+}

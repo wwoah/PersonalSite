@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000">
+<defs>
+  <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 0"/></filter>
+  <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3efe7"/><stop offset="1" stop-color="#e2d9c8"/></linearGradient>
+</defs>
+<rect width="800" height="1000" fill="url(#g)"/>
+<g filter="url(#blur)">
+  <circle cx="560" cy="340" r="260" fill="#ff5a1f"/>
+  <circle cx="260" cy="620" r="240" fill="#ffb08a"/>
+  <circle cx="520" cy="780" r="200" fill="#15171a" opacity=".55"/>
+  <circle cx="220" cy="250" r="170" fill="#ffd23f" opacity=".65"/>
+</g>
+<g transform="translate(470 470)" fill="none" stroke="#15171a" stroke-width="1.6" opacity=".38"><ellipse cx="0" cy="0" rx="70" ry="60.2" transform="rotate(-14)"/><ellipse cx="0" cy="0" rx="116" ry="99.8" transform="rotate(-11)"/><ellipse cx="0" cy="0" rx="162" ry="139.3" transform="rotate(-8)"/><ellipse cx="0" cy="0" rx="208" ry="178.9" transform="rotate(-5)"/><ellipse cx="0" cy="0" rx="254" ry="218.4" transform="rotate(-2)"/><ellipse cx="0" cy="0" rx="300" ry="258" transform="rotate(1)"/><ellipse cx="0" cy="0" rx="346" ry="297.6" transform="rotate(4)"/><ellipse cx="0" cy="0" rx="392" ry="337.1" transform="rotate(7)"/><ellipse cx="0" cy="0" rx="438" ry="376.7" transform="rotate(10)"/><ellipse cx="0" cy="0" rx="484" ry="416.2" transform="rotate(13)"/><ellipse cx="0" cy="0" rx="530" ry="455.8" transform="rotate(16)"/></g>
+<rect width="800" height="1000" filter="url(#grain)" opacity=".22"/>
+</svg>

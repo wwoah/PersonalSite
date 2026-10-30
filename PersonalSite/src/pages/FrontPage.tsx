@@ -1,499 +1,243 @@
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { useGSAP } from "@gsap/react";
-import {
-  gsap,
-  ScrollTrigger,
-  SplitText,
-  Flip,
-  reduceMotion,
-} from "../anim/gsap";
+import { gsap, ScrollTrigger, reduceMotion } from "../anim/gsap";
+import { scrollToSection } from "../anim/scroll";
 import SmoothScroll from "../components/SmoothScroll";
-import ProgressRail from "../components/ProgressRail";
-import type { RailStop } from "../components/ProgressRail";
-import Panel from "../components/panels/Panel";
-import type { PanelMeta } from "../components/panels/Panel";
-import { Prompt, Cmd, PromptLine, TermWindow } from "../components/Term";
+import SiteNav from "../components/SiteNav";
+import Section from "../components/Section";
+import Decode from "../components/Decode";
+import Art from "../components/Art";
+import WorkInProgress from "../components/WorkInProgress";
+import Lightbox, { ZoomButton } from "../components/Lightbox";
+import TransitionLink from "../components/transition/TransitionLink";
+import { rich } from "../components/rich";
+import { skillPath } from "../routes";
+import {
+  ABOUT,
+  AI,
+  CAPABILITY_GROUPS,
+  EXPERIENCE,
+  HAS_GAMES_PAGE,
+  HEADINGS,
+  INTERESTS,
+  MARQUEE,
+  PROCESS,
+  PROFILE,
+  PROJECTS,
+  SERVICES,
+  SOCIALS,
+  getSkill,
+  hasSkillPage,
+} from "../content";
+import type { CapabilityId, Project, Skill } from "../content";
+import contours from "../assets/contours-hero.svg?raw";
 import "./FrontPage.css";
 
 /* ──────────────────────────────────────────────────────────────────
-   Section register.
+   FRONT PAGE
 
-   Declaring the whole running order in one place keeps the numbering
-   and the headers from drifting apart, and gives the progress rail its
-   stops for free.
-
-   `kicker` is the command the section answers. Every one of them is a
-   cmdlet that would actually run, in the Verb-Noun form PowerShell
-   requires, because a made-up command in a page that is otherwise this
-   literal about the shell is the one thing a reader would catch.
+   Two motion systems, each with its own job:
+   - ascii-reveal decodes content into place — the hero on load, every
+     card, image and block of copy as it scrolls into view (see
+     Decode.tsx for the rules that keep it aligned).
+   - GSAP owns everything that moves: the contour lines drawing in,
+     the glow chasing the pointer, section grounds opening out, titles
+     rising, the marquee answering scroll speed, and ScrollSmoother
+     underneath all of it.
    ────────────────────────────────────────────────────────────────── */
-const META = {
-  hero: { id: "hero", num: "00", kicker: "Get-Host", title: "Phillip Bishop" },
-  about: {
-    id: "about",
-    num: "01",
-    kicker: "Get-Profile",
-    title: "Full-stack engineer who actually likes both halves.",
-  },
-  /* Projects and experience sit directly under the prose, because they
-     are the only sections a stranger can verify without taking any of
-     it on faith. Everything below them is supporting depth for a reader
-     already interested. */
-  work: {
-    id: "work",
-    num: "02",
-    kicker: "Get-ChildItem .\\projects",
-    title: "Things I've built.",
-  },
-  exp: {
-    id: "exp",
-    num: "03",
-    kicker: "Get-Experience | Format-Table",
-    title: "Where I've shipped.",
-  },
-  code: {
-    id: "code",
-    num: "04",
-    kicker: "Get-Content .\\samples\\*",
-    title: "A sample from each half.",
-  },
-  stack: {
-    id: "stack",
-    num: "05",
-    kicker: "Get-Module -ListAvailable",
-    title: "What I reach for.",
-  },
-  contact: {
-    id: "contact",
-    num: "06",
-    kicker: "Send-MailMessage",
-    title: "Let's build something.",
-  },
-} satisfies Record<string, PanelMeta>;
 
-/* The rail sets these vertically in a ~14ch column, so they are the
-   command's subject rather than the command itself. */
-const RAIL_STOPS: RailStop[] = [
-  { id: "hero", num: "00", label: "host" },
-  { id: "about", num: "01", label: "profile" },
-  { id: "work", num: "02", label: "projects" },
-  { id: "exp", num: "03", label: "experience" },
-  { id: "code", num: "04", label: "samples" },
-  { id: "stack", num: "05", label: "modules" },
-  { id: "contact", num: "06", label: "contact" },
-];
+/** In-page links scroll through ScrollSmoother rather than jumping. */
+const jump = (id: string) => (e: MouseEvent) => {
+  e.preventDefault();
+  scrollToSection(id);
+};
 
-const EXPERIENCE = [
-  {
-    year: "2024 — 2026",
-    role: "Full-Stack Software Developer",
-    company: "ELB US, Inc.",
-    companyLink: "https://www.elbeducation.com/",
-    stack: "React · TypeScript · C# · .NET Framework · EF6 · T-SQL",
-    desc: "Completed the creation of an inhouse ERP/accounting software web application. Front end was created using React with TypeScript heavily styled with the Mantine React UI library. Backend support included C# and .NET for api calls and database communication. All data was stored in a SQL database.",
-  },
-];
-
-const STACK = [
-  {
-    label: "Languages",
-    chips: ["TypeScript", "C#", "JavaScript", "T-SQL", "HTML", "CSS", "PowerShell"],
-  },
-  {
-    label: "Frontend",
-    chips: ["React", "Vite", "GSAP", "Tailwind", "CSS Modules", "React Router"],
-  },
-  {
-    label: "Backend",
-    chips: [".NET 8", ".NET Framework", "ASP.NET Web API", "ASP.NET MVC", "Blazor", "REST"],
-  },
-  {
-    label: "Data",
-    chips: ["Entity Framework", "EF Core", "SQL Server", "Stored Procedures", "Migrations"],
-  },
-  {
-    label: "Tools & Platforms",
-    chips: ["Visual Studio", "VS Code", "Git", "Azure DevOps", "Docker", "xUnit", "Postman"],
-  },
-];
-
-const PROJECTS = [
-  {
-    num: "001",
-    title: "InkSync",
-    category: "React · TypeScript",
-    desc: "A hub for collabrative drawing features, such as a live canvas, private chat rooms and a drawing guessing minigame.",
-    link: "https://inksync-1-o3dk.onrender.com/",
-  },
-  {
-    num: "002",
-    title: "Peel Riot (WIP)",
-    category: "MongoDB · Typescript - React · GSAP",
-    desc: "Purely custom sticker website. Slight plug, but still worth highlighting.",
-    link: "https://peelriot.com",
-  },
-];
-
-/* ──────────────────────────────────────────────────────────────────
-   SAMPLES
-
-   One window, two files. These were two full sections — a TypeScript
-   one and a T-SQL one — which between them spent a quarter of the page
-   on code that demonstrates style rather than evidencing work. Behind
-   tabs they make the same point in one section and the height of the
-   taller of the two.
-
-   The tab strip was always drawn here; it just did not do anything.
-   Now it does, which is both the honest reading of that chrome and the
-   reason the merge costs no new furniture.
-   ────────────────────────────────────────────────────────────────── */
-const SAMPLE_TABS = [
-  { id: "ts", label: "useUser.ts" },
-  { id: "sql", label: "top-orders.sql" },
-];
-
-function Samples() {
-  const [tab, setTab] = useState("ts");
-
-  return (
-    <>
-      <p className="sample-intro">
-        Both halves of the same request: the hook the interface calls, and
-        the query it ultimately lands on.
-      </p>
-
-      <TermWindow
-        id="samples"
-        className="code-window"
-        tabs={SAMPLE_TABS}
-        active={tab}
-        onSelect={setTab}
-      >
-        <div className="term__body">
-          {/* Both tabs are a file listing, so both open with the same
-              command — `Get-Content` prints a file, which is what the
-              line numbers below are numbering. */}
-          <PromptLine
-            cmd={
-              tab === "ts"
-                ? "Get-Content .\\src\\hooks\\useUser.ts"
-                : "Get-Content .\\sql\\top-orders.sql"
-            }
-            caret={false}
-          />
-
-          {tab === "ts" ? (
-            <pre className="code-body">
-              <code>
-                <div className="code-line"><span className="c-kw">type</span> <span className="c-type">User</span> = {"{"} id: <span className="c-type">number</span>; name: <span className="c-type">string</span>; roles: <span className="c-type">string</span>[] {"}"};</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line"><span className="c-kw">export function</span> <span className="c-fn">useUser</span>(id: <span className="c-type">number</span>) {"{"}</div>
-                <div className="code-line">  <span className="c-kw">const</span> [user, setUser] = <span className="c-fn">useState</span>&lt;<span className="c-type">User</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
-                <div className="code-line">  <span className="c-kw">const</span> [error, setError] = <span className="c-fn">useState</span>&lt;<span className="c-type">Error</span> | <span className="c-kw">null</span>&gt;(<span className="c-kw">null</span>);</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line">  <span className="c-fn">useEffect</span>(() =&gt; {"{"}</div>
-                <div className="code-line">    <span className="c-kw">const</span> ctrl = <span className="c-kw">new</span> <span className="c-fn">AbortController</span>();</div>
-                <div className="code-line">    <span className="c-fn">fetch</span>(<span className="c-str">{"`/api/users/${id}`"}</span>, {"{"} signal: ctrl.signal {"}"})</div>
-                <div className="code-line">      .<span className="c-fn">then</span>(r =&gt; r.<span className="c-fn">json</span>() <span className="c-kw">as</span> <span className="c-type">Promise</span>&lt;<span className="c-type">User</span>&gt;)</div>
-                <div className="code-line">      .<span className="c-fn">then</span>(setUser, setError);</div>
-                <div className="code-line">    <span className="c-kw">return</span> () =&gt; ctrl.<span className="c-fn">abort</span>();</div>
-                <div className="code-line">  {"}"}, [id]);</div>
-                <div className="code-line">&nbsp;</div>
-                <div className="code-line">  <span className="c-kw">return</span> {"{"} user, error {"}"};</div>
-                <div className="code-line">{"}"}</div>
-              </code>
-            </pre>
-          ) : (
-            <pre className="code-body">
-              <code>
-                <div className="code-line"><span className="sql-keyword">WITH</span> <span className="sql-obj">RankedOrders</span> <span className="sql-keyword">AS</span> (</div>
-                <div className="code-line">    <span className="sql-keyword">SELECT</span> o.CustomerId, o.OrderId, o.TotalAmount,</div>
-                <div className="code-line">        <span className="sql-fn">ROW_NUMBER</span>() <span className="sql-keyword">OVER</span> (</div>
-                <div className="code-line">            <span className="sql-keyword">PARTITION BY</span> o.CustomerId</div>
-                <div className="code-line">            <span className="sql-keyword">ORDER BY</span> o.OrderDate <span className="sql-keyword">DESC</span></div>
-                <div className="code-line">        ) <span className="sql-keyword">AS</span> rn</div>
-                <div className="code-line">    <span className="sql-keyword">FROM</span> <span className="sql-obj">dbo.Orders</span> o</div>
-                <div className="code-line">    <span className="sql-keyword">WHERE</span> o.OrderDate &gt;= <span className="sql-fn">DATEADD</span>(<span className="sql-keyword">MONTH</span>, -6, <span className="sql-fn">GETUTCDATE</span>())</div>
-                <div className="code-line">)</div>
-                <div className="code-line"><span className="sql-keyword">SELECT</span> c.CustomerName, r.OrderId, r.TotalAmount</div>
-                <div className="code-line"><span className="sql-keyword">FROM</span> <span className="sql-obj">RankedOrders</span> r</div>
-                <div className="code-line"><span className="sql-keyword">INNER JOIN</span> <span className="sql-obj">dbo.Customers</span> c <span className="sql-keyword">ON</span> c.CustomerId = r.CustomerId</div>
-                <div className="code-line"><span className="sql-keyword">WHERE</span> r.rn = 1</div>
-                <div className="code-line"><span className="sql-keyword">ORDER BY</span> r.TotalAmount <span className="sql-keyword">DESC</span>;</div>
-              </code>
-            </pre>
-          )}
-        </div>
-      </TermWindow>
-    </>
-  );
-}
+/** An email to me with the subject already filled in. */
+const ask = (subject: string) => `mailto:${PROFILE.email}?subject=${encodeURIComponent(subject)}`;
 
 /* ──────────────────────────────────────────────────────────────────
    HERO
    ────────────────────────────────────────────────────────────────── */
 function Hero() {
-  const root = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLElement>(null);
 
   useGSAP(
     () => {
-      if (reduceMotion()) {
-        gsap.set(root.current!.querySelectorAll("[data-hero]"), { opacity: 1 });
-        return;
-      }
+      const hero = root.current;
+      if (!hero || reduceMotion()) return;
+      const q = gsap.utils.selector(hero);
 
-      const q = gsap.utils.selector(root);
+      /* The map draws itself while the copy decodes — two different
+         kinds of "arriving" that read as one moment. Each line grows
+         from its own midpoint, in random order, so the field fills in
+         like ink spreading rather than a wipe. */
+      gsap.from(q(".hero__art path"), {
+        drawSVG: "50% 50%",
+        duration: 2.8,
+        ease: "depth",
+        stagger: { each: 0.018, from: "random" },
+        delay: 0.1,
+      });
+      gsap.from(q(".hero__glow"), { opacity: 0, scale: 0.6, duration: 2.4, ease: "depth" });
 
-      // Chars are masked so they rise out of a hard edge rather than
-      // fading in — reads as type being set, not content loading.
-      const split = SplitText.create(q(".hero-name"), {
-        type: "chars",
-        mask: "chars",
-        charsClass: "name-char",
-        // The cursor lives inside the heading so it sits on the text
-        // baseline, but it is chrome, not type — leave it whole.
-        ignore: ".cursor",
+      /* The glow trails the pointer and the map leans away from it.
+         quickTo reuses one tween per axis instead of spawning one per
+         pointermove. */
+      const glow = q(".hero__glow")[0];
+      const art = q(".hero__art")[0];
+      const gx = gsap.quickTo(glow, "x", { duration: 1.8, ease: "power3" });
+      const gy = gsap.quickTo(glow, "y", { duration: 1.8, ease: "power3" });
+      const ax = gsap.quickTo(art, "x", { duration: 2.4, ease: "power3" });
+      const ay = gsap.quickTo(art, "y", { duration: 2.4, ease: "power3" });
+      const onMove = (e: PointerEvent) => {
+        if (e.pointerType !== "mouse") return;
+        const r = hero.getBoundingClientRect();
+        const nx = (e.clientX - r.left) / r.width - 0.5;
+        const ny = (e.clientY - r.top) / r.height - 0.5;
+        gx(nx * r.width * 0.55);
+        gy(ny * r.height * 0.55);
+        ax(nx * -28);
+        ay(ny * -18);
+      };
+      hero.addEventListener("pointermove", onMove);
+
+      gsap.to(q(".hero__badge-ring"), { rotate: 360, duration: 26, ease: "none", repeat: -1 });
+      gsap.from(q(".hero__badge"), {
+        scale: 0,
+        rotate: -120,
+        duration: 1.3,
+        ease: "back.out(1.5)",
+        delay: 1.9,
       });
 
-      /* Release the CSS reveal guard BEFORE the timeline is built.
-         `from` tweens immediate-render at construction and record the
-         value they find as their END state — with the guard still at
-         opacity 0 they animate 0 → 0, which is why the tagline and the
-         scroll hint never appeared. Setting them first has to happen
-         here, not as the timeline's first tween. */
-      gsap.set(q("[data-hero]"), { opacity: 1 });
-
-      const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
-
-      tl.from(q(".boot-line"), { opacity: 0, x: -10, duration: 0.4, stagger: 0.15 })
-        .to(
-          q(".boot-scramble"),
-          {
-            duration: 1.1,
-            scrambleText: {
-              text: "phillip\\full-stack · react · typescript · .NET · sql",
-              chars: "01<>/\\$_",
-              speed: 0.7,
-              revealDelay: 0.25,
-            },
-          },
-          "-=0.2"
-        )
-        .from(
-          split.chars,
-          { yPercent: 118, duration: 0.7, ease: "settle", stagger: 0.03 },
-          "-=0.7"
-        )
-        .from(q(".hero-tagline"), { opacity: 0, y: 20, duration: 0.8 }, "-=0.35")
-        /* The Format-List block reveals as one unit with the command
-           that produced it. `.hero-meta-item` is `display: contents`
-           so the colons line up across rows — a contents box has no
-           box to transform, which is why the stagger targets the
-           label and value cells themselves. */
-        .from(
-          q(".hero-meta-cmd, .hero-meta-item > *"),
-          { opacity: 0, y: 12, duration: 0.45, stagger: 0.045 },
-          "-=0.4"
-        )
-        .from(q(".hero-scroll-hint"), { opacity: 0, y: 10, duration: 0.5 }, "-=0.15");
-
-      gsap.to(q(".cursor"), {
-        opacity: 0,
-        duration: 0.5,
-        repeat: -1,
-        yoyo: true,
-        ease: "steps(1)",
-      });
-
-      return () => split.revert();
-    },
-    { scope: root }
-  );
-
-  return (
-    <div className="hero" ref={root}>
-      <div className="boot-sequence" data-hero data-speed="1.06">
-        <p className="boot-line">
-          <Prompt /> <Cmd text="whoami" />
-        </p>
-        <p className="boot-line boot-output boot-scramble">&nbsp;</p>
-      </div>
-
-      {/* Two lines, not one. In monospace "PHILLIP BISHOP" is 8.4em
-          wide on a single line and caps out around 6rem before it
-          overruns the measure; split, it runs to 8.5rem. */}
-      <h1 className="hero-name" data-hero>
-        <span className="hero-name-line">Phillip</span>
-        <span className="hero-name-line">
-          Bishop
-          <span className="cursor" aria-hidden="true">
-            _
-          </span>
-        </span>
-      </h1>
-
-      <p className="hero-tagline" data-hero data-speed="0.94">
-        I build both ends, the interface you click and the API it talks to. The
-        kind of full-stack work where the same person worries about the button's
-        hover state and the database index it ultimately hits.
-      </p>
-
-      <div className="hero-meta-block" data-hero>
-        <PromptLine
-          cmd="Get-Author | Format-List"
-          className="hero-meta-cmd"
-          caret={false}
-        />
-
-        <dl className="hero-meta">
-          <div className="hero-meta-item">
-            <dt className="meta-label">Role</dt>
-            <dd className="meta-value">Full-Stack Engineer</dd>
-          </div>
-          <div className="hero-meta-item">
-            <dt className="meta-label">Location</dt>
-            <dd className="meta-value">Danville, CA</dd>
-          </div>
-          <div className="hero-meta-item">
-            <dt className="meta-label">Status</dt>
-            <dd className="meta-value">
-              <span className="status-dot" /> Open to work
-            </dd>
-          </div>
-          <div className="hero-meta-item">
-            <dt className="meta-label">Arcade</dt>
-            <dd className="meta-value">
-              <Link to="/arcade" className="arcade-link">
-                .\arcade.exe
-              </Link>
-            </dd>
-          </div>
-        </dl>
-      </div>
-
-      <p className="hero-scroll-hint" aria-hidden="true" data-hero>
-        scroll <span className="hero-scroll-rule" />
-      </p>
-    </div>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────────────
-   STACK — Flip-driven filtering
-
-   Chips reflow rather than repaint when you change category, so the
-   section responds to input, not just to scroll position. The filters
-   are styled as switch parameters because that is what they are: one
-   more argument on the Get-Module call in the header.
-   ────────────────────────────────────────────────────────────────── */
-function StackBody() {
-  const root = useRef<HTMLDivElement>(null);
-  const [filter, setFilter] = useState("All");
-  const pending = useRef<ReturnType<typeof Flip.getState> | null>(null);
-
-  const categories = ["All", ...STACK.map((c) => c.label)];
-  const visible = filter === "All" ? STACK : STACK.filter((c) => c.label === filter);
-
-  const change = (next: string) => {
-    if (next === filter) return;
-    // Capture geometry before React re-renders — Flip needs the "before"
-    // state recorded while the old layout is still on screen.
-    if (!reduceMotion() && root.current) {
-      pending.current = Flip.getState(
-        root.current.querySelectorAll(".stack-chip, .stack-category")
+      gsap.fromTo(
+        q(".hero__cue-line"),
+        { scaleY: 0, transformOrigin: "top center" },
+        { scaleY: 1, duration: 1.1, ease: "sweep", repeat: -1, yoyo: true, repeatDelay: 0.3 }
       );
-    }
-    setFilter(next);
-  };
 
-  useGSAP(
-    () => {
-      const state = pending.current;
-      if (!state) return;
-      pending.current = null;
-
-      Flip.from(state, {
-        duration: 0.55,
-        ease: "settle",
-        scale: true,
-        absolute: true,
-        stagger: 0.015,
-        onEnter: (els) =>
-          gsap.fromTo(
-            els,
-            { opacity: 0, scale: 0.8 },
-            { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.5)" }
-          ),
-        onLeave: (els) =>
-          gsap.to(els, { opacity: 0, scale: 0.8, duration: 0.25 }),
+      /* Leaving the hero, the content lifts and dims a little faster
+         than the page scrolls — the Decode root moves as one piece, so
+         its overlay goes with it. */
+      gsap.to(q(".hero__inner"), {
+        yPercent: -10,
+        opacity: 0.25,
+        ease: "none",
+        scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: true },
       });
-    },
-    { scope: root, dependencies: [filter] }
-  );
 
-  /* First-view reveal only. Once the reader starts filtering, Flip owns
-     chip motion — replaying this on every filter change would fight it. */
-  useGSAP(
-    () => {
-      if (reduceMotion()) return;
-      const q = gsap.utils.selector(root);
-
-      q(".stack-category").forEach((cat) => {
-        gsap.from(cat.querySelectorAll(".stack-chip"), {
-          opacity: 0,
-          y: 20,
-          scale: 0.92,
-          duration: 0.45,
-          ease: "back.out(1.4)",
-          stagger: 0.035,
-          scrollTrigger: {
-            trigger: cat,
-            start: "top 82%",
-            toggleActions: "play none none reverse",
-          },
-        });
-      });
+      return () => hero.removeEventListener("pointermove", onMove);
     },
     { scope: root }
   );
 
   return (
-    <div className="stack-wrap" ref={root}>
-      <div className="stack-filters" role="group" aria-label="Filter stack by category">
-        {categories.map((c) => (
-          <button
-            key={c}
-            type="button"
-            className="stack-filter"
-            data-active={c === filter || undefined}
-            aria-pressed={c === filter}
-            onClick={() => change(c)}
-          >
-            {c}
-          </button>
-        ))}
+    <header ref={root} id="top" className="hero" data-theme="paper">
+      <div className="hero__bg" aria-hidden="true">
+        <div className="hero__glow" />
+        {/* Outer layer takes ScrollSmoother's parallax, inner layer the
+            pointer drift — one transform each, so they never fight. */}
+        <div className="hero__map" data-speed="0.75">
+          <div className="hero__art" dangerouslySetInnerHTML={{ __html: contours }} />
+        </div>
       </div>
 
-      <div className="stack-categories">
-        {visible.map((cat) => (
-          <div key={cat.label} className="stack-category" data-flip-id={`cat-${cat.label}`}>
-            <p className="stack-label">{cat.label}</p>
-            <div className="stack-chips">
-              {cat.chips.map((chip) => (
-                <span
-                  key={chip}
-                  className="stack-chip"
-                  data-flip-id={`${cat.label}-${chip}`}
-                >
-                  {chip}
-                </span>
-              ))}
-            </div>
+      <Decode immediate speed={1} className="hero__inner">
+        <div className="hero__copy">
+          {/* Boxes the decode should hold back with the text, rather
+              than leave standing empty while the copy is still glyphs:
+              `fade` for pills and buttons, `surface` for the cards. */}
+          <p className="hero__status" data-ascii="fade">
+            <span className="hero__dot" aria-hidden="true" />
+            {PROFILE.status}
+          </p>
+
+          <h1 className="hero__name">
+            <span className="hero__name-line">{PROFILE.first}</span>
+            <span className="hero__name-line">
+              <em>{PROFILE.last}</em>
+              <span className="hero__period">.</span>
+            </span>
+          </h1>
+
+          <p className="hero__headline">{PROFILE.headline}</p>
+          <p className="hero__intro">{PROFILE.intro}</p>
+
+          <div className="hero__actions">
+            <a className="btn" href="#work" onClick={jump("work")} data-ascii="fade">
+              See my work <span className="btn__arrow">→</span>
+            </a>
+            <a className="btn btn--ghost" href="#contact" onClick={jump("contact")} data-ascii="fade">
+              Get in touch
+            </a>
+            {/* A new tab, so the PDF doesn't take the reader off the site. */}
+            <a className="btn btn--ghost" href={PROFILE.resume} target="_blank" rel="noopener" data-ascii="fade">
+              Résumé <span className="btn__arrow">↗</span>
+            </a>
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+
+        <figure className="hero__portrait">
+          <div className="hero__frame" data-ascii="surface">
+            <Art
+              src={PROFILE.portrait}
+              alt={PROFILE.portraitAlt}
+              width={800}
+              height={1000}
+              fetchPriority="high"
+            />
+          </div>
+          <figcaption className="hero__caption">
+            <span>{PROFILE.location}</span>
+            <span>37.82° N, 122.00° W</span>
+          </figcaption>
+
+          {/* Skipped by the decode: it is set on a path, and GSAP spins
+              it, so there is nothing for a glyph grid to line up with. */}
+          <div className="hero__badge" data-ascii="skip" aria-hidden="true">
+            <svg className="hero__badge-ring" viewBox="0 0 120 120">
+              <defs>
+                <path id="badge-path" d="M60 60m-45 0a45 45 0 1 1 90 0a45 45 0 1 1-90 0" />
+              </defs>
+              <text>
+                <textPath href="#badge-path" textLength="282" lengthAdjust="spacing">
+                  OPEN TO WORK • SOFTWARE, AI &amp; IT •
+                </textPath>
+              </text>
+            </svg>
+            <span className="hero__badge-core">✦</span>
+          </div>
+        </figure>
+
+        <div className="hero__foot">
+          <dl className="hero__meta">
+            <div>
+              <dt>Role</dt>
+              <dd>{PROFILE.role}</dd>
+            </div>
+            <div>
+              <dt>Covers</dt>
+              <dd>{PROFILE.covers}</dd>
+            </div>
+            <div>
+              <dt>Based in</dt>
+              <dd>{PROFILE.location}</dd>
+            </div>
+            <div>
+              <dt>On site</dt>
+              <dd>{PROFILE.area}</dd>
+            </div>
+          </dl>
+          <a className="hero__cue" href="#about" onClick={jump("about")}>
+            Scroll
+            <span className="hero__cue-track" aria-hidden="true">
+              <span className="hero__cue-line" />
+            </span>
+          </a>
+        </div>
+      </Decode>
+    </header>
   );
 }
 
@@ -502,29 +246,13 @@ function StackBody() {
 
    The strip loops by sliding exactly one copy's width and starting
    over, which is seamless only while the copies left on screen still
-   span the viewport at the instant it resets. That needs one copy to
-   fill the screen and one more behind it to cover the jump.
-
-   The count is measured rather than assumed. It was hardcoded at two,
-   which held only while a single copy was wider than the screen — the
-   terminal restyle took the type from 1.25rem down to 0.875rem, one
-   copy fell to 994px, and the reset started exposing bare track: a
-   445px gap at 1440 and 925px at 1920. Phones never showed it, because
-   there a copy is still wider than the screen.
+   span the viewport at the instant it resets — so the copy count is
+   measured, not assumed (one to fill the screen, one to cover the
+   jump). Scroll speed pushes it along, and scroll direction steers it.
    ────────────────────────────────────────────────────────────────── */
 
-/** Scroll speed in px/sec, held constant however many copies there are. */
-const MARQUEE_SPEED = 33;
-
-const MARQUEE_LINE = (
-  <>
-    <span className="marquee-dot">●</span> Open to full-stack &amp; frontend
-    roles
-    <span className="marquee-dot">●</span> Remote, hybrid or on site
-    <span className="marquee-dot">●</span> React · TypeScript · .NET · SQL
-    Server
-  </>
-);
+/** Resting speed in px/sec, held constant however many copies there are. */
+const MARQUEE_SPEED = 42;
 
 function Marquee() {
   const root = useRef<HTMLDivElement>(null);
@@ -533,18 +261,17 @@ function Marquee() {
   useGSAP(
     () => {
       const wrap = root.current;
-      const track = wrap?.querySelector<HTMLElement>(".marquee-track");
-      const one = wrap?.querySelector<HTMLElement>(".marquee-content");
+      const track = wrap?.querySelector<HTMLElement>(".marquee__track");
+      const one = wrap?.querySelector<HTMLElement>(".marquee__copy");
       if (!wrap || !track || !one) return;
 
       let tween: gsap.core.Tween | undefined;
+      let dir = 1;
 
       const fit = () => {
         const w = one.getBoundingClientRect().width;
         if (!w) return;
-
-        /* One copy to fill the viewport, plus one to cover the reset.
-           Returning the current value when it already fits lets React
+        /* Returning the current value when it already fits lets React
            bail out, so this cannot loop against its own dependency. */
         const need = Math.ceil(wrap.clientWidth / w) + 1;
         setCopies((c) => (c === need ? c : need));
@@ -552,39 +279,59 @@ function Marquee() {
         tween?.kill();
         gsap.set(track, { x: 0 });
         if (reduceMotion()) return;
-
-        tween = gsap.to(track, {
-          x: -w,
-          duration: w / MARQUEE_SPEED,
-          ease: "none",
-          repeat: -1,
-        });
+        tween = gsap.fromTo(
+          track,
+          { x: 0 },
+          { x: -w, duration: w / MARQUEE_SPEED, ease: "none", repeat: -1 }
+        );
       };
 
       fit();
-
-      /* Both of these change a copy's width, and either one alone would
-         leave the strip mis-measured: the webfont replacing the
-         fallback, and the viewport resizing across the font-size
-         clamp. */
       const ro = new ResizeObserver(fit);
       ro.observe(wrap);
       document.fonts?.ready.then(fit);
 
+      const boost = reduceMotion()
+        ? undefined
+        : ScrollTrigger.create({
+            trigger: wrap,
+            start: "top bottom",
+            end: "bottom top",
+            onUpdate: (self) => {
+              if (!tween) return;
+              dir = self.direction;
+              const v = Math.min(Math.abs(self.getVelocity()) / 260, 5);
+              gsap.to(tween, {
+                timeScale: dir * (1 + v),
+                duration: 0.2,
+                overwrite: true,
+                onComplete: () => {
+                  gsap.to(tween!, { timeScale: dir, duration: 1.4, ease: "power2.out" });
+                },
+              });
+            },
+          });
+
       return () => {
         ro.disconnect();
         tween?.kill();
+        boost?.kill();
       };
     },
     { scope: root, dependencies: [copies] }
   );
 
   return (
-    <div className="marquee" ref={root} aria-hidden="true">
-      <div className="marquee-track">
+    <div className="marquee" data-theme="ink" ref={root} aria-hidden="true">
+      <div className="marquee__track">
         {Array.from({ length: copies }).map((_, i) => (
-          <span key={i} className="marquee-content">
-            {MARQUEE_LINE}
+          <span key={i} className="marquee__copy">
+            {MARQUEE.map((item) => (
+              <span key={item} className="marquee__item">
+                {item}
+                <span className="marquee__star">✦</span>
+              </span>
+            ))}
           </span>
         ))}
       </div>
@@ -593,281 +340,622 @@ function Marquee() {
 }
 
 /* ──────────────────────────────────────────────────────────────────
-   PAGE
+   ABOUT
    ────────────────────────────────────────────────────────────────── */
-function FrontPage() {
-  const container = useRef<HTMLDivElement>(null);
+function About() {
+  return (
+    <Section id="about" title={rich(HEADINGS.about.title)}>
+      <div className="about">
+        <Decode className="about__text" origin="top-left">
+          <p className="about__lead">{ABOUT.lead}</p>
+          <p className="about__body">{ABOUT.it}</p>
+          <p className="about__body">{ABOUT.more}</p>
+          <p className="about__body">{ABOUT.ai}</p>
+          
+        </Decode>
+
+        <Decode as="aside" className="about__card" data-ascii="surface" delay={0.15}>
+          <p className="eyebrow">At a glance</p>
+          <dl className="about__facts">
+            {ABOUT.facts.map((f) => (
+              <div key={f.label}>
+                <dt>{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+          {HAS_GAMES_PAGE && (
+            <TransitionLink to="/games" label="Games" className="about__games" data-ascii="fade">
+              <span>
+                <span className="about__games-kicker">Off the clock</span>
+                I make games in Unity and Roblox Studio. Take a look?
+              </span>
+              <span className="about__games-arrow" aria-hidden="true">
+                →
+              </span>
+            </TransitionLink>
+          )}
+        </Decode>
+      </div>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   WORK
+
+   Each project's picture opens larger in the lightbox on a click.
+   ────────────────────────────────────────────────────────────────── */
+function ProjectMedia({ project }: { project: Project }) {
+  const [zoomed, setZoomed] = useState(false);
+
+  return (
+    <>
+      <ZoomButton onClick={() => setZoomed(true)}>
+        <Art
+          src={project.image}
+          alt={project.imageAlt}
+          width={1440}
+          height={900}
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+        />
+      </ZoomButton>
+      {zoomed && (
+        <Lightbox
+          images={[{ src: project.image, alt: project.imageAlt }]}
+          index={0}
+          onClose={() => setZoomed(false)}
+          label={project.title}
+        />
+      )}
+    </>
+  );
+}
+
+function Work() {
+  return (
+    <Section
+      id="work"
+      theme="ink"
+      title={rich(HEADINGS.work.title)}
+      intro={HEADINGS.work.intro}
+      art={
+        <>
+          <div className="art-glow art-glow--work" />
+          <div className="art-contours" data-speed="0.85" />
+        </>
+      }
+    >
+      <div className="work">
+        {PROJECTS.map((p, i) => (
+          <Decode as="article" key={p.title} className="project">
+            <div className="project__media" data-ascii="surface">
+              <ProjectMedia project={p} />
+            </div>
+
+            <div className="project__body">
+              <p className="project__meta eyebrow">
+                <span>{String(i + 1).padStart(2, "0")}</span>
+                {p.status && <span className="project__status" color = "yellow">
+                  {p.status}
+                </span>}
+              </p>
+              <h3 className="project__title">
+                {p.link ? (
+                  <a className="project__link" href={p.link} target="_blank" rel="noopener noreferrer">
+                    {p.title}
+                    <span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                ) : (
+                  p.title
+                )}
+              </h3>
+              <p className="project__desc">{p.desc}</p>
+              <ul className="project__tags" aria-label="Built with">
+                {p.tags.map((t) => (
+                  <li key={t} className="chip" data-ascii="fade">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+              {p.link && (
+                <span className="project__cta" aria-hidden="true">
+                  Visit site <span className="project__cta-arrow">↗</span>
+                </span>
+              )}
+            </div>
+          </Decode>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CAPABILITIES
+
+   A light follows the pointer across the cards. It is a CSS variable
+   on the grid, not a transform on a card, so it never disturbs the
+   decode running inside them.
+
+   A card opens its skill's own page once it has highlights to show
+   (see SKILL PAGES in content.ts). Its number, link and call to action
+   all come from that skill, so the numbering here and on the skill
+   pages can't drift apart.
+   ────────────────────────────────────────────────────────────────── */
+const skillFor = (id: CapabilityId) => getSkill(id)!;
+
+/** A card's title, linked to its skill page once there is one. The
+    link stretches over the whole card, as on the work section. */
+function SkillTitle({ skill, className }: { skill: Skill; className: string }) {
+  if (!hasSkillPage(skill)) return <h4 className={className}>{skill.title}</h4>;
+
+  /* Swapping this page's address for /#<id> first means coming back,
+     by any route including the browser's Back button, lands on this
+     card rather than the top of the page. */
+  const markReturn = () => window.history.replaceState(window.history.state, "", `#${skill.id}`);
+
+  return (
+    <h4 className={className}>
+      <TransitionLink to={skillPath(skill.id)} label={skill.title} className="cap__link" onClick={markReturn}>
+        {skill.title}
+        <span className="sr-only">: see examples</span>
+      </TransitionLink>
+    </h4>
+  );
+}
+
+/** "See 3 examples →" along the foot of a card that opens a page. */
+function SkillCta({ skill }: { skill: Skill }) {
+  if (!hasSkillPage(skill)) return null;
+  const n = skill.highlights.length;
+  let label = n > 0 ? `See ${n} example${n === 1 ? "" : "s"}` : "See examples";
+  if (skill.inProgress) label = "Examples in progress";
+
+  return (
+    <span className="cap__cta" aria-hidden="true">
+      {label}
+      <span className="cap__cta-arrow">→</span>
+    </span>
+  );
+}
+
+function Capabilities() {
+  const onMove = (e: ReactPointerEvent<HTMLOListElement>) => {
+    const card = (e.target as HTMLElement).closest<HTMLElement>(".cap");
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    card.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+
+  return (
+    <Section id="capabilities" title={rich(HEADINGS.capabilities.title)} intro={HEADINGS.capabilities.intro}>
+      {CAPABILITY_GROUPS.map((group) => (
+        <div key={group.label} className="caps-group">
+          <div className="caps-group__head">
+            <h3 className="caps-group__title">{group.label}</h3>
+            <p className="caps-group__note">{group.note}</p>
+          </div>
+          <ol className="caps" onPointerMove={onMove} start={Number(skillFor(group.items[0].id).num)}>
+            {group.items.map((c, i) => {
+              const skill = skillFor(c.id);
+              return (
+                <Decode
+                  as="li"
+                  key={skill.id}
+                  className="cap"
+                  data-ascii="surface"
+                  origin="top-left"
+                  delay={(i % 2) * 0.12}
+                >
+                  <span id={skill.id} className="cap__anchor" />
+                  <div className="cap__media">
+                    <Art src={skill.image} alt="" width={640} height={420} loading="lazy" decoding="async" />
+                  </div>
+                  <div className="cap__body">
+                    <p className="cap__num eyebrow">{skill.num}</p>
+                    <SkillTitle skill={skill} className="cap__title" />
+                    <p className="cap__desc">{skill.desc}</p>
+                    <ul className="cap__tools" aria-label="Tools">
+                      {skill.tools.map((t) => (
+                        <li key={t} className="chip" data-ascii="fade">
+                          {t}
+                        </li>
+                      ))}
+                    </ul>
+                    <SkillCta skill={skill} />
+                  </div>
+                </Decode>
+              );
+            })}
+          </ol>
+        </div>
+      ))}
+      <AiGroup />
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   AI — one illustration beside four compact cards
+
+   Under the work-in-progress panel for now: the heading stays readable
+   so it's clear what's coming, and the cards show through blurred.
+   While it's up, each card's /#<skill-id> lands on the whole group
+   rather than on a blurred card inside the panel.
+
+   Once the AI examples are in, render <AiCards /> on its own in place
+   of the panel, and drop the anchors above the heading.
+   ────────────────────────────────────────────────────────────────── */
+function AiGroup() {
+  return (
+    <div className="caps-group ai">
+      {AI.items.map((item) => (
+        <span key={item.id} id={item.id} className="cap__anchor" />
+      ))}
+      <div className="caps-group__head">
+        <h3 className="caps-group__title">{AI.label}</h3>
+        <p className="caps-group__note">{AI.note}</p>
+      </div>
+      <WorkInProgress className="ai__wip" title={AI.wip.title} note={AI.wip.note} mailto={ask(`About: ${AI.label}`)}>
+        <AiCards anchors={false} />
+      </WorkInProgress>
+    </div>
+  );
+}
+
+/** The illustration and the four cards. `anchors` puts each card's
+    /#<skill-id> landing spot on the card itself. */
+function AiCards({ anchors = true }: { anchors?: boolean }) {
+  return (
+    <div className="ai__body">
+      {/* Both shapes are here and the stylesheet shows one: tall beside
+          the cards, the wide banner once they stack above it. */}
+      <Decode className="ai__visual" data-ascii="surface">
+        <Art className="ai__art--tall" src={AI.image} alt="" width={600} height={1000} loading="lazy" decoding="async" />
+        <Art className="ai__art--wide" src={AI.banner} alt="" width={640} height={420} loading="lazy" decoding="async" />
+      </Decode>
+      <ol className="ai__list" start={Number(skillFor(AI.items[0].id).num)}>
+        {AI.items.map((item, i) => {
+          const skill = skillFor(item.id);
+          return (
+            <Decode
+              as="li"
+              key={skill.id}
+              className="ai__item"
+              data-ascii="surface"
+              origin="top-left"
+              delay={(i % 2) * 0.1}
+            >
+              {anchors && <span id={skill.id} className="cap__anchor" />}
+              <p className="cap__num eyebrow">{skill.num}</p>
+              <SkillTitle skill={skill} className="ai__title" />
+              <p className="ai__desc">{skill.desc}</p>
+              <ul className="cap__tools" aria-label="Tools">
+                {skill.tools.map((t) => (
+                  <li key={t} className="chip" data-ascii="fade">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+              <SkillCta skill={skill} />
+            </Decode>
+          );
+        })}
+      </ol>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   SERVICES
+
+   The client-facing half of the page: what a small business or a
+   person can ask for, and how that goes. Every "ask" opens an email
+   with the service already in the subject, so the first message is
+   half written.
+   ────────────────────────────────────────────────────────────────── */
+function Services() {
+  return (
+    <Section
+      id="services"
+      theme="ink"
+      title={rich(HEADINGS.services.title)}
+      intro={HEADINGS.services.intro}
+      art={
+        <>
+          <div className="art-glow art-glow--services" />
+          <div className="art-contours" data-speed="0.85" />
+        </>
+      }
+    >
+      <div className="services">
+        <ol className="services__list">
+          {SERVICES.map((s, i) => (
+            <Decode as="li" key={s.title} className="service" origin="top-left" delay={i * 0.05}>
+              <span className="service__num">{String(i + 1).padStart(2, "0")}</span>
+              <div className="service__body">
+                <h3 className="service__title">
+                  <a className="service__link" href={ask(`Help with: ${s.title}`)}>
+                    {s.title}
+                    <span className="sr-only"> — email me about this</span>
+                  </a>
+                </h3>
+                <p className="service__desc">{s.desc}</p>
+                <ul className="service__tags" aria-label="Involves">
+                  {s.tags.map((t) => (
+                    <li key={t} className="chip" data-ascii="fade">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <span className="service__arrow" aria-hidden="true">
+                ↗
+              </span>
+            </Decode>
+          ))}
+        </ol>
+
+        <Decode as="aside" className="process" data-ascii="surface" delay={0.15}>
+          <p className="eyebrow">How it works</p>
+          <ol className="process__steps">
+            {PROCESS.map((p, i) => (
+              <li key={p.title}>
+                <span className="process__num" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <div>
+                  <h3 className="process__title">{p.title}</h3>
+                  <p className="process__desc">{p.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <a className="btn" href={ask("IT help request")} data-ascii="fade">
+            Tell me what you need <span className="btn__arrow">→</span>
+          </a>
+          <p className="process__note">
+            Small businesses and individuals both welcome. I'll come to you anywhere around the
+            Bay, or help remotely.
+          </p>
+        </Decode>
+      </div>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   EXPERIENCE
+   ────────────────────────────────────────────────────────────────── */
+function Experience() {
+  const root = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
-      const q = gsap.utils.selector(container);
-
-      /* The page is set in one webfont at several weights. It still
-         changes every heading's height when it lands, and without this
-         every pin start/end is measured against the fallback and drifts
-         once the real face arrives. */
-      document.fonts?.ready.then(() => ScrollTrigger.refresh());
-
       if (reduceMotion()) return;
-
-      /* Source viewer */
-      gsap.from(q(".code-window"), {
-        opacity: 0,
-        y: 40,
-        rotateX: 12,
-        transformOrigin: "50% 100%",
-        duration: 0.9,
-        ease: "depth",
-        scrollTrigger: {
-          trigger: ".code-window",
-          start: "top 82%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      gsap.from(q(".code-line"), {
-        opacity: 0,
-        x: -10,
-        duration: 0.3,
-        ease: "none",
-        stagger: 0.08,
-        scrollTrigger: {
-          trigger: ".code-window",
-          start: "top 72%",
-          toggleActions: "play none none reverse",
-        },
-      });
-
-      /* Experience */
-      gsap.from(q(".timeline-line"), {
+      gsap.from(".timeline__line", {
         scaleY: 0,
-        transformOrigin: "top center",
         ease: "none",
-        scrollTrigger: {
-          trigger: ".timeline",
-          start: "top 72%",
-          end: "bottom 62%",
-          scrub: 0.5,
-        },
-      });
-
-      q(".experience-item").forEach((item) => {
-        gsap.from(item, {
-          x: -30,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: item,
-            start: "top 86%",
-            toggleActions: "play none none reverse",
-          },
-        });
-      });
-
-      /* The query's keywords used to ignite one by one as you scrolled
-         through them. That needed the reader to scroll the length of
-         the block, which is exactly what tabbing the samples together
-         removed — behind a tab the query is either shown or it is not.
-         The keywords simply render lit. */
-
-      /* Projects */
-      q(".project").forEach((project, i) => {
-        gsap.from(project, {
-          x: i % 2 === 0 ? -60 : 60,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: project,
-            start: "top 82%",
-            toggleActions: "play none none reverse",
-          },
-        });
-      });
-
-      /* The marquee drives itself — it has to measure its own copies to
-         know how far to travel, so it owns its tween rather than being
-         animated from out here. */
-
-      /* Footer */
-      gsap.from(q(".footer-content > *"), {
-        y: 30,
-        opacity: 0,
-        duration: 0.9,
-        ease: "power2.out",
-        stagger: 0.1,
-        scrollTrigger: { trigger: ".footer", start: "top 85%" },
+        scrollTrigger: { trigger: root.current, start: "top 75%", end: "bottom 60%", scrub: 0.5 },
       });
     },
-    { scope: container }
+    { scope: root }
   );
 
   return (
-    <div ref={container} className="resume">
-      <ProgressRail stops={RAIL_STOPS} />
+    <Section id="experience" title={rich(HEADINGS.experience.title)}>
+      <div className="timeline" ref={root}>
+        <span className="timeline__line" aria-hidden="true" />
+
+        {EXPERIENCE.map((job) => (
+          <Decode as="article" key={job.company + job.years} className="job" origin="top-left">
+            <p className="job__years">{job.years}</p>
+            <div className="job__body">
+              <h3 className="job__role">{job.role}</h3>
+              <p className="job__company">
+                <a href={job.companyLink} target="_blank" rel="noopener noreferrer">
+                  {job.company}
+                  <span aria-hidden="true"> ↗</span>
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              </p>
+              <p className="job__summary">{job.summary}</p>
+              <ul className="job__points">
+                {job.points.map((pt) => (
+                  <li key={pt}>{pt}</li>
+                ))}
+              </ul>
+              <ul className="job__stack" aria-label="Stack">
+                {job.stack.map((t) => (
+                  <li key={t} className="chip" data-ascii="fade">
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Decode>
+        ))}
+
+        {/* The open end of the timeline. */}
+        <Decode className="job job--next" origin="top-left">
+          <p className="job__years">Next</p>
+          <div className="job__body">
+            <h3 className="job__role">Your team?</h3>
+            <p className="job__summary">
+              I'm looking for my next development or IT role, remote, hybrid or on site, and I'm
+              happy to commute anywhere in the Bay Area. I take on IT consulting and freelance
+              projects too.
+            </p>
+            <a className="btn" href="#contact" onClick={jump("contact")} data-ascii="fade">
+              Start a conversation <span className="btn__arrow">→</span>
+            </a>
+          </div>
+        </Decode>
+      </div>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   INTERESTS
+   ────────────────────────────────────────────────────────────────── */
+function Interests() {
+  return (
+    <Section
+      id="interests"
+      theme="ink"
+      title={rich(HEADINGS.interests.title)}
+      intro={HEADINGS.interests.intro}
+      art={<div className="art-glow art-glow--interests" />}
+    >
+      <ul className="interests">
+        {INTERESTS.map((it, i) => (
+          <Decode
+            as="li"
+            key={it.title}
+            className="interest"
+            data-ascii="surface"
+            delay={(i % 2) * 0.1}
+          >
+            <div className="interest__media">
+              <Art src={it.image} alt={it.imageAlt} width={800} height={600} loading="lazy" decoding="async" />
+            </div>
+            <div className="interest__body">
+              <h3 className="interest__title">{it.title}</h3>
+              <p className="interest__desc">{it.desc}</p>
+              {it.cta && (
+                <TransitionLink to={it.cta.to} label={it.cta.page} className="interest__cta">
+                  {it.cta.label} <span aria-hidden="true">→</span>
+                </TransitionLink>
+              )}
+            </div>
+          </Decode>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   CONTACT
+
+   The orange panel grows out of the dark section above it rather than
+   out of the page, so its corners show ink, not paper.
+   ────────────────────────────────────────────────────────────────── */
+function Contact() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(PROFILE.email);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      window.location.href = `mailto:${PROFILE.email}`;
+    }
+  };
+
+  return (
+    <Section
+      id="contact"
+      theme="signal"
+      className="section--contact"
+      title={rich(HEADINGS.contact.title)}
+      intro={HEADINGS.contact.intro}
+      art={<div className="art-contours art-contours--contact" data-speed="0.9" />}
+    >
+      <Decode className="contact">
+        <a className="contact__email" href={`mailto:${PROFILE.email}`}>
+          {PROFILE.email}
+        </a>
+        <div className="contact__actions">
+          <button type="button" className="btn" onClick={copy} data-ascii="fade">
+            {copied ? "Copied to clipboard" : "Copy email"}
+          </button>
+          <a className="btn btn--ghost" href={`mailto:${PROFILE.email}`} data-ascii="fade">
+            Write to me <span className="btn__arrow">↗</span>
+          </a>
+        </div>
+        <span className="sr-only" role="status">
+          {copied ? "Email address copied" : ""}
+        </span>
+        <ul className="contact__socials">
+          {SOCIALS.map((s) => (
+            <li key={s.label}>
+              <a href={s.href}>
+                {s.label} <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Decode>
+
+      <footer className="footer">
+        <p>
+          © {new Date().getFullYear()} {PROFILE.name}
+        </p>
+        <p>
+          Built with React, TypeScript and GSAP. Transitions by{" "}
+          <a href="https://github.com/quanhoangindex/ascii-reveal" target="_blank" rel="noopener noreferrer">
+            ascii-reveal
+          </a>
+          .
+        </p>
+        <a className="footer__top" href="#top" onClick={jump("top")}>
+          Back to top <span aria-hidden="true">↑</span>
+        </a>
+      </footer>
+    </Section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   PAGE
+   ────────────────────────────────────────────────────────────────── */
+function FrontPage() {
+  useGSAP(() => {
+    /* Three webfonts change every heading's height when they land; the
+       triggers measured before that would fire early or late. Once
+       they're in, honour a /#<id> link: a section, or the skill card a
+       visitor has just come back to. */
+    document.fonts?.ready.then(() => {
+      ScrollTrigger.refresh();
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      if (id && document.getElementById(id)) scrollToSection(id, false);
+    });
+  });
+
+  return (
+    <div className="site">
+      <a
+        className="skip-link"
+        href="#about"
+        onClick={(e) => {
+          jump("about")(e);
+          document.getElementById("about")?.focus({ preventScroll: true });
+        }}
+      >
+        Skip to content
+      </a>
+
+      <SiteNav />
 
       <SmoothScroll>
-        <Panel {...META.hero} bare>
+        <main>
           <Hero />
-        </Panel>
-
-        <Panel {...META.about}>
-          <div className="about-body">
-            <p className="about-lead">
-              On the back I write C# the way a carpenter measures twice, clean
-              DbContexts, stored procedures that return in under 50ms, indexes
-              that earn their keep. On the front I build React with TypeScript,
-              where I care about component boundaries the same way I care about
-              transaction scopes.
-            </p>
-            <p>
-              I've spent years on production .NET systems with Entity Framework
-              and T-SQL, and just as long shipping React UIs that people actually
-              want to use. I think in <code>useEffect</code> dependency arrays and{" "}
-              <code>AsNoTracking()</code> queries with equal comfort, and I write
-              code that reads cleanly on either side of the API boundary.
-            </p>
-          </div>
-        </Panel>
-
-        <Panel {...META.work}>
-          <div className="projects-list">
-            {/* The `dir` column header. The real headings are on each
-                row, so this is decoration and is hidden from AT. */}
-            <div className="projects-head" aria-hidden="true">
-              <span>Mode</span>
-              <span>Name</span>
-            </div>
-
-            {PROJECTS.map((p) => (
-              /* `data-linked` drives the row's clickable dressing —
-                 cursor, hover wash, sliding arrow — so a project with
-                 no link yet stays inert instead of promising a
-                 destination it does not have. */
-              <article
-                key={p.num}
-                className="project"
-                data-linked={p.link ? "" : undefined}
-              >
-                <div className="project-mode" aria-hidden="true">
-                  <b>d----</b> {p.num}
-                </div>
-                <div className="project-body">
-                  <p className="project-category">{p.category}</p>
-                  <h3 className="project-title">
-                    {p.link ? (
-                      <a
-                        className="link-out"
-                        href={p.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {p.title}
-                        <span className="link-out__mark" aria-hidden="true">
-                          ↗
-                        </span>
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </a>
-                    ) : (
-                      p.title
-                    )}
-                  </h3>
-                  <p className="project-desc">{p.desc}</p>
-                </div>
-                <div className="project-arrow" aria-hidden="true">
-                  →
-                </div>
-              </article>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel {...META.exp}>
-          <div className="timeline">
-            <div className="timeline-line" />
-            {EXPERIENCE.map((job) => (
-              <article key={job.year} className="experience-item">
-                <div className="experience-year">{job.year}</div>
-                <div className="experience-body">
-                  <h3 className="experience-role">{job.role}</h3>
-                  <p className="experience-company">
-                    {job.companyLink ? (
-                      <a
-                        className="link-out"
-                        href={job.companyLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {job.company}
-                        {/* The arrow is in the markup rather than a CSS
-                            ::after so it can be hidden from the
-                            accessibility tree outright — screen readers
-                            announce generated content inconsistently,
-                            and "north east arrow" is not information. */}
-                        <span className="link-out__mark" aria-hidden="true">
-                          ↗
-                        </span>
-                        {/* A link that opens elsewhere should say so, and
-                            saying it invisibly costs the layout nothing. */}
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </a>
-                    ) : (
-                      job.company
-                    )}
-                  </p>
-                  <p className="experience-stack">{job.stack}</p>
-                  <p className="experience-desc">{job.desc}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel {...META.code}>
-          <Samples />
-        </Panel>
-
-        <Panel {...META.stack}>
-          <StackBody />
-        </Panel>
-
-        {/* ── Outro ticker ── */}
-        <Marquee />
-
-        <footer className="footer" id="contact">
-          <div className="footer-content">
-            <p className="footer-kicker">
-              <Prompt /> <Cmd text="Send-MailMessage -To phillipkbishop@gmail.com" />
-            </p>
-            <h2 className="footer-title">Let's build something.</h2>
-            <a href="mailto:phillipkbishop@gmail.com" className="footer-email">
-              phillipkbishop@gmail.com
-            </a>
-            <div className="footer-links">
-              <a href="#">GitHub</a>
-              <a href="#">LinkedIn</a>
-              <a href="#">Resume.pdf</a>
-            </div>
-
-            {/* The page signs off the way a shell does. */}
-            <p className="footer-status">
-              <span>
-                ExitCode <b>0</b>
-              </span>
-              <span>
-                pwsh <b>7.4</b>
-              </span>
-              <span>UTF-8</span>
-              <span>
-                sections <b>07/07</b>
-              </span>
-            </p>
-            <p className="footer-copy">
-              # built with TypeScript, React and GSAP. Deployed on caffeine.
-            </p>
-          </div>
-        </footer>
+          <Marquee />
+          <About />
+          <Work />
+          <Capabilities />
+          <Services />
+          <Experience />
+          <Interests />
+          <Contact />
+        </main>
       </SmoothScroll>
     </div>
   );

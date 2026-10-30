@@ -1,0 +1,19 @@
+/* ──────────────────────────────────────────────────────────────────
+   PAGE BAR — SiteNav.css does the bar itself; these are the changes
+   for a page whose one link is the way back.
+   ────────────────────────────────────────────────────────────────── */
+
+/* On the front page this link gives way to the menu on narrow
+   screens. Here it is the way back, so it stays. */
+.page-bar .nav__games {
+  display: inline-flex;
+}
+
+/* The front page's play triangle, turned to point back. */
+.page-bar__back .nav__games-icon {
+  transform: rotate(180deg);
+}
+
+.page-bar__back:hover .nav__games-icon {
+  transform: rotate(180deg) translateX(2px) scale(1.15);
+}

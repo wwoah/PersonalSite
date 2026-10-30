@@ -1,0 +1,60 @@
+/* ──────────────────────────────────────────────────────────────────
+   The curtain. Invisible and click-through until a transition sets
+   data-active; ascii-reveal owns its opacity from there. The root is
+   transparent on purpose — the surface panel inside it is what the
+   library fades, so the root must not paint the theme background the
+   way every other [data-theme] element does.
+   ────────────────────────────────────────────────────────────────── */
+.curtain[data-theme] {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.curtain[data-active] {
+  visibility: visible;
+  pointer-events: auto;
+  cursor: progress;
+}
+
+.curtain__panel {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 50% 55%, color-mix(in srgb, var(--signal) 16%, transparent), transparent 70%),
+    var(--bg);
+}
+
+.curtain__content {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  padding: var(--gutter);
+  text-align: center;
+}
+
+.curtain__eyebrow,
+.curtain__hint {
+  margin: 0;
+  font: 500 0.75rem/1 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.curtain__label {
+  margin: 0;
+  font: 400 clamp(2.75rem, 8vw, 6.5rem) / 1 var(--serif);
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+.curtain__hint {
+  color: var(--accent);
+}

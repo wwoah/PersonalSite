@@ -1,118 +1,319 @@
 /* ──────────────────────────────────────────────────────────────────
-   GLOBAL SHELL
+   GLOBAL TOKENS
 
-   The whole site is one console surface, so the root tokens are the
-   terminal's tokens. There is no light mode: a light PowerShell window
-   is a thing that exists, but the page's entire visual argument —
-   glow, scanlines, phosphor accents — is built on a dark ground, and a
-   light variant would be a different design rather than a recolour.
-   `color-scheme: dark` tells the UA to match its own chrome
-   (scrollbars, form controls, the flash before first paint) to that.
+   The site is set on warm paper with ink type and one signal colour.
+   Sections switch between three grounds — paper, ink and signal — by
+   setting `data-theme`; every component reads the themed tokens
+   (--bg, --fg, --muted, --line, --accent) rather than the raw palette,
+   so a card dropped into a dark section re-colours itself.
+
+   Contrast was checked for each pairing at the size it is used: --dim
+   is the lightest text colour allowed on each ground, and --accent is
+   the text-safe variant of the signal colour for that ground (the raw
+   signal colour is reserved for fills, glows and display sizes).
+
+   The signal colour is the visitor's to choose. The accent picker
+   (src/theme/accent.ts) writes the four --signal / --accent-* values
+   below as inline properties on <html>, deriving the text-safe shades
+   itself, so everything here keeps working whatever colour is picked.
    ────────────────────────────────────────────────────────────────── */
 :root {
-  /* ── Ground ─────────────────────────────────────────────────────
-     Windows Terminal / VS Code dark, not pure black. #000 on an OLED
-     panel makes the scanline overlay invisible and the glow read as
-     haze; a near-black keeps both legible. */
-  --bg: #0a0c0d;
-  --bg-soft: #121617;
-  --bg-elevated: #0e1112;
-  --bg-chrome: #16191b;
+  /* ── Palette ──────────────────────────────────────────────────── */
+  --paper: #f3efe7;
+  --paper-2: #e9e3d7;
+  --paper-3: #ddd5c6;
+  --ink: #15171a;
+  --ink-bg: #121417;
+  --ink-2: #1b1e22;
+  --ink-3: #262a30;
 
-  /* ── Foreground ────────────────────────────────────────────────
-     Console white is very slightly cool and never #fff — a pure white
-     on near-black vibrates at mono's stroke weight. */
-  --fg: #d4dad7;
-  --fg-muted: #8a9490;
-  --fg-dim: #767f7b;
+  /* ── Accent — defaults are aquamarine ─────────────────────────────
+     Overwritten on <html> by the accent picker; the values here are
+     exactly what it derives for #7fffd4. */
+  --signal: #7fffd4;
+  --on-signal: #15171a;
+  --accent-paper: #00724c;
+  --accent-ink: #7fffd4;
+  --signal-soft: color-mix(in srgb, var(--signal) 55%, #fff);
 
-  --rule: rgba(53, 208, 127, 0.14);
-  --rule-hard: rgba(212, 218, 215, 0.12);
+  /* ── Type ─────────────────────────────────────────────────────── */
+  --serif: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 
-  /* ── Phosphor ───────────────────────────────────────────────────
-     One green, three intensities. 9.8:1 on the ground, so it carries
-     small text as well as it carries glow. */
-  --accent: #35d07f;
-  --accent-bright: #5ce89b;
-  --accent-dim: #1f8a54;
-  --accent-glow: rgba(53, 208, 127, 0.55);
-  --accent-wash: rgba(53, 208, 127, 0.08);
+  /* ── Motion ───────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 
-  /* ── Console 16-colour, the half we actually use ────────────────
-     PowerShell's own syntax colours: cyan for parameters, yellow for
-     strings, magenta for keywords, red for errors, blue for types. */
-  --c-cyan: #56c7e8;
-  --c-yellow: #e5c07b;
-  --c-magenta: #c586c0;
-  --c-red: #e06c75;
-  --c-blue: #61afef;
+  /* ── Layout ───────────────────────────────────────────────────── */
+  --max: 1240px;
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+  --nav-h: 68px;
+  --radius: 18px;
+  --radius-sm: 10px;
 
-  --shadow: rgba(0, 0, 0, 0.55) 0 20px 45px -12px,
-    rgba(0, 0, 0, 0.4) 0 6px 14px -6px;
+  /* ── ascii-reveal ─────────────────────────────────────────────────
+     The library reads these from each wrapper. Geist Mono keeps the
+     scramble glyphs in the same family as the site's labels, so the
+     decode reads as part of the type system rather than a filter. */
+  --ascii-font: var(--mono);
 
-  /* One family for everything. JetBrains Mono first; Cascadia is the
-     local Windows fallback so a failed webfont still lands on the
-     terminal's own face rather than on Courier. */
-  --mono: 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', Consolas,
-    ui-monospace, 'SF Mono', Menlo, monospace;
-  --sans: var(--mono);
-  --display: var(--mono);
-
-  font: 16px/1.6 var(--mono);
-  letter-spacing: 0;
-  color-scheme: dark;
-  color: var(--fg);
-  background: var(--bg);
+  font: 400 17px/1.6 var(--sans);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  @media (max-width: 1024px) {
-    font-size: 15px;
+  @media (max-width: 720px) {
+    font-size: 16px;
   }
+}
+
+/* ── Themes ─────────────────────────────────────────────────────── */
+:root,
+[data-theme='paper'] {
+  --bg: var(--paper);
+  --surface: var(--paper-2);
+  --surface-2: var(--paper-3);
+  --fg: var(--ink);
+  --muted: #55585e;
+  --dim: #5c5f65;
+  --line: rgba(21, 23, 26, 0.13);
+  --line-strong: rgba(21, 23, 26, 0.3);
+  --accent: var(--accent-paper);
+  --accent-fill: var(--signal);
+  --on-accent: var(--on-signal);
+  --glow: color-mix(in srgb, var(--signal) 30%, transparent);
+  --ascii-accent: var(--accent);
+  color-scheme: light;
+}
+
+[data-theme='ink'] {
+  --bg: var(--ink-bg);
+  --surface: var(--ink-2);
+  --surface-2: var(--ink-3);
+  --fg: #efebe3;
+  --muted: #a7a8a6;
+  --dim: #8b8d8d;
+  --line: rgba(239, 235, 227, 0.12);
+  --line-strong: rgba(239, 235, 227, 0.3);
+  --accent: var(--accent-ink);
+  --accent-fill: var(--signal);
+  --on-accent: var(--on-signal);
+  --glow: color-mix(in srgb, var(--signal) 30%, transparent);
+  --ascii-accent: var(--accent);
+  color-scheme: dark;
+}
+
+/* The signal ground is the accent itself, so its text is whichever of
+   ink or paper the picker found reads on it, and the quieter tones are
+   that text colour mixed back toward the ground. */
+[data-theme='signal'] {
+  --bg: var(--signal);
+  --surface: color-mix(in srgb, var(--signal) 82%, #fff);
+  --surface-2: color-mix(in srgb, var(--signal) 70%, #fff);
+  --fg: var(--on-signal);
+  --muted: color-mix(in srgb, var(--on-signal) 78%, var(--signal));
+  --dim: color-mix(in srgb, var(--on-signal) 78%, var(--signal));
+  --line: color-mix(in srgb, var(--on-signal) 20%, transparent);
+  --line-strong: color-mix(in srgb, var(--on-signal) 45%, transparent);
+  --accent: var(--on-signal);
+  --accent-fill: var(--on-signal);
+  --on-accent: var(--signal);
+  --glow: color-mix(in srgb, var(--on-signal) 16%, transparent);
+  --ascii-accent: var(--on-signal);
+  color-scheme: light;
+}
+
+[data-theme] {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--paper);
+  color: var(--fg);
 }
 
-/* Console scrollbar. The default light thumb is the one piece of UA
-   chrome that reads as "web page" rather than "terminal". */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent-dim) var(--bg-elevated);
-}
-*::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-*::-webkit-scrollbar-track {
-  background: var(--bg-elevated);
-}
-*::-webkit-scrollbar-thumb {
-  background: var(--accent-dim);
-  border: 2px solid var(--bg-elevated);
-  border-radius: 0;
-}
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-
-::selection {
-  background: var(--accent);
-  color: var(--bg);
-}
-
-/* The resume is a full-bleed, scroll-driven page: it manages its own
-   measure and gutters per section, and ScrollSmoother needs an
-   unconstrained scroll container. */
 #root {
   width: 100%;
-  margin: 0 auto;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Shared UI — buttons, chips, eyebrows.
+
+   Global rather than per-page because the nav, the transition curtain
+   and the front page all use them, and each one reads the themed
+   tokens so a button inside a dark or orange section re-colours
+   itself without a variant.
+   ────────────────────────────────────────────────────────────────── */
+.btn {
+  --btn-bg: var(--fg);
+  --btn-fg: var(--bg);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.5rem;
+  border: 1px solid var(--btn-bg);
+  border-radius: 999px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: 500 0.95rem/1 var(--sans);
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  isolation: isolate;
+  overflow: hidden;
+  transition: color 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+}
+
+/* The fill rises from the bottom on hover rather than snapping, so the
+   button answers the pointer with motion rather than just a colour. */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent-fill);
+  transform: translateY(101%);
+  transition: transform 0.45s var(--ease-out);
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: none;
+}
+
+.btn:hover,
+.btn:focus-visible {
+  color: var(--on-accent);
+  border-color: var(--accent-fill);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--fg);
+  border-color: var(--line-strong);
+}
+
+.btn--small {
+  padding: 0.6rem 1.05rem;
+  font-size: 0.875rem;
+}
+
+.btn__arrow {
+  display: inline-block;
+  transition: transform 0.45s var(--ease-out);
+}
+
+.btn:hover .btn__arrow {
+  transform: translateX(3px);
+}
+
+/* The nav sits on paper whatever the section beneath, so its button
+   pins the paper pairing rather than inheriting from the page. */
+.nav .btn {
+  --btn-bg: var(--ink);
+  --btn-fg: var(--paper);
+  --accent-fill: var(--signal);
+  --on-accent: var(--on-signal);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 500 0.75rem/1 var(--mono);
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  white-space: nowrap;
+}
+
+.eyebrow {
+  margin: 0;
+  font: 500 0.75rem/1.2 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn::before,
+  .btn__arrow {
+    transition: none;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2000;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 500 0.85rem/1 var(--sans);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.2s var(--ease-out);
+}
+.skip-link:focus-visible {
+  transform: none;
 }

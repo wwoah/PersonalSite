@@ -7,34 +7,31 @@
    any component tries to build a timeline.
    ────────────────────────────────────────────────────────────────── */
 import { gsap } from "gsap";
+import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { SplitText } from "gsap/SplitText";
-import { ScrambleTextPlugin } from "gsap/ScrambleTextPlugin";
 import { CustomEase } from "gsap/CustomEase";
-import { Flip } from "gsap/Flip";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { Observer } from "gsap/Observer";
 
 gsap.registerPlugin(
+  useGSAP,
   ScrollTrigger,
   ScrollSmoother,
   SplitText,
-  ScrambleTextPlugin,
   CustomEase,
-  Flip,
+  DrawSVGPlugin,
   Observer
 );
 
 /* ──────────────────────────────────────────────────────────────────
    Signature eases.
 
-   Three curves used everywhere instead of stock power2/power3, so the
-   motion reads as authored rather than defaulted. Registered by name —
-   any tween can use ease: "blade".
+   Used everywhere instead of stock power2/power3, so the motion reads
+   as authored rather than defaulted. Registered by name — any tween
+   can use ease: "settle".
    ────────────────────────────────────────────────────────────────── */
-
-/** Hangs, then commits hard. For the cut itself. */
-CustomEase.create("blade", "M0,0 C0.28,0 0.12,1 1,1");
 
 /** Long ease-out with almost no ease-in. For things arriving from depth. */
 CustomEase.create("depth", "M0,0 C0.12,0.66 0.2,1 1,1");
@@ -42,26 +39,9 @@ CustomEase.create("depth", "M0,0 C0.12,0.66 0.2,1 1,1");
 /** Overshoots barely, then settles. For text and small UI. */
 CustomEase.create("settle", "M0,0 C0.16,1 0.3,1 1,1");
 
-/* ──────────────────────────────────────────────────────────────────
-   Motion preference
+/** Symmetric and firm. For things that open and close, like a curtain. */
+CustomEase.create("sweep", "M0,0 C0.65,0 0.35,1 1,1");
 
-   A hard switch the page checks before it builds a single
-   ScrollTrigger, not an afterthought that dials durations down: when
-   it is set, every reveal and parallax simply never mounts and the
-   smooth scroller is never created.
+export { reduceMotion } from "./motion";
 
-   Read live rather than cached, so someone who changes the setting
-   system-wide mid-session gets it on the next render.
-   ────────────────────────────────────────────────────────────────── */
-export const reduceMotion = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-export {
-  gsap,
-  ScrollTrigger,
-  ScrollSmoother,
-  SplitText,
-  CustomEase,
-  Flip,
-  Observer,
-};
+export { gsap, ScrollTrigger, ScrollSmoother, SplitText, CustomEase, Observer };

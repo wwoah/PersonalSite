@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#15171a" opacity=".16"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="#e9e3d7"/>
+  <rect width="800" height="600" fill="url(#dots)"/>
+
+  <circle cx="400" cy="390" r="215" fill="#ffb08a" opacity=".5"/>
+
+  <!-- a jump from one world to the other -->
+  <path d="M232 150Q400 30 560 132" fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 10" stroke-linecap="round" opacity=".45"/>
+
+  <!-- an editor's cube, gizmo and all -->
+  <polygon points="157.0,104.0 217.6,139.0 217.6,209.0 157.0,244.0 96.4,209.0 96.4,139.0" fill="#15171a"/>
+  <polygon points="89.4,130.0 150.0,165.0 150.0,235.0 89.4,200.0" fill="#ffb08a" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="150.0,165.0 210.6,130.0 210.6,200.0 150.0,235.0" fill="#ff5a1f" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="150.0,95.0 210.6,130.0 150.0,165.0 89.4,130.0" fill="#f8f6f1" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <g><path d="M150.0 165.0L150.0 62.0" stroke="#15171a" stroke-width="5" stroke-linecap="round"/><polygon points="150.0,46.0 158.0,62.0 142.0,62.0" fill="#15171a" stroke="#15171a" stroke-width="2" stroke-linejoin="round"/></g>
+  <g opacity="0.55"><path d="M150.0 165.0L227.0 209.1" stroke="#15171a" stroke-width="5" stroke-linecap="round"/><polygon points="240.9,217.0 223.1,216.0 231.0,202.1" fill="#15171a" stroke="#15171a" stroke-width="2" stroke-linejoin="round"/></g>
+  <g opacity="0.55"><path d="M150.0 165.0L73.0 209.1" stroke="#15171a" stroke-width="5" stroke-linecap="round"/><polygon points="59.1,217.0 69.0,202.1 76.9,216.0" fill="#15171a" stroke="#15171a" stroke-width="2" stroke-linejoin="round"/></g>
+  <circle cx="150" cy="165" r="7" fill="#f8f6f1" stroke="#15171a" stroke-width="3"/>
+
+  <!-- a block world with someone standing on it -->
+  <polygon points="647.0,129.0 716.3,169.0 716.3,209.0 647.0,249.0 577.7,209.0 577.7,169.0" fill="#15171a"/>
+  <polygon points="570.7,160.0 640.0,200.0 640.0,240.0 570.7,200.0" fill="#e9e3d7" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="640.0,200.0 709.3,160.0 709.3,200.0 640.0,240.0" fill="#ddd5c6" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <polygon points="640.0,120.0 709.3,160.0 640.0,200.0 570.7,160.0" fill="#f8f6f1" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M690 162V78" stroke="#15171a" stroke-width="4" stroke-linecap="round"/>
+  <polygon points="690,78 730,91 690,104" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/>
+  <rect x="613.7" y="145.5" width="11.7" height="26.5" rx="3" fill="#15171a"/><rect x="628.6" y="145.5" width="11.7" height="26.5" rx="3" fill="#15171a"/><rect x="609.8" y="112.7" width="34.3" height="34.3" rx="3" fill="#15171a"/><rect x="598.1" y="114.3" width="10.9" height="29.6" rx="3" fill="#15171a"/><rect x="644.9" y="114.3" width="10.9" height="29.6" rx="3" fill="#15171a"/><rect x="613.7" y="84.6" width="26.5" height="26.5" rx="5" fill="#15171a"/><rect x="608.7" y="139.5" width="11.7" height="26.5" rx="3" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="623.6" y="139.5" width="11.7" height="26.5" rx="3" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="604.8" y="106.7" width="34.3" height="34.3" rx="3" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="593.1" y="108.3" width="10.9" height="29.6" rx="3" fill="#ffb08a" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="639.9" y="108.3" width="10.9" height="29.6" rx="3" fill="#ffb08a" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="608.7" y="78.6" width="26.5" height="26.5" rx="5" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5" stroke-linejoin="round"/><rect x="615.0" y="87.2" width="3.9" height="5.5" rx="1.5" fill="#15171a"/><rect x="625.1" y="87.2" width="3.9" height="5.5" rx="1.5" fill="#15171a"/><path d="M616.5 96.6q5.5 4.7 10.9 0" fill="none" stroke="#15171a" stroke-width="2.5" stroke-linecap="round"/>
+
+  <circle cx="333" cy="124" r="12" fill="#15171a"/><circle cx="330" cy="120" r="12" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5"/><path d="M330 114.6v10.8" stroke="#15171a" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="395" cy="102" r="12" fill="#15171a"/><circle cx="392" cy="98" r="12" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5"/><path d="M392 92.6v10.8" stroke="#15171a" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="459" cy="108" r="12" fill="#15171a"/><circle cx="456" cy="104" r="12" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5"/><path d="M456 98.6v10.8" stroke="#15171a" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- the controller -->
+  <path d="M290 280H510C570 280 600 310 615 360L640 450C650 490 620 515 590 500L545 455C535 445 525 440 510 440H290C275 440 265 445 255 455L210 500C180 515 150 490 160 450L185 360C200 310 230 280 290 280Z" transform="translate(9 11)" fill="#15171a"/>
+  <path d="M290 280H510C570 280 600 310 615 360L640 450C650 490 620 515 590 500L545 455C535 445 525 440 510 440H290C275 440 265 445 255 455L210 500C180 515 150 490 160 450L185 360C200 310 230 280 290 280Z" fill="#f8f6f1" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M288 322h24v20h20v24h-20v20h-24v-20h-20v-24h20z" fill="#15171a"/>
+  <circle cx="500" cy="328" r="13" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5"/>
+  <circle cx="530" cy="355" r="13" fill="#15171a"/>
+  <circle cx="470" cy="355" r="13" fill="#ffb08a" stroke="#15171a" stroke-width="2.5"/>
+  <circle cx="500" cy="382" r="13" fill="#15171a"/>
+  <rect x="372" y="314" width="22" height="9" rx="4.5" fill="#15171a" opacity=".45"/>
+  <rect x="406" y="314" width="22" height="9" rx="4.5" fill="#15171a" opacity=".45"/>
+  <circle cx="358" cy="402" r="23" fill="#e9e3d7" stroke="#15171a" stroke-width="3"/>
+  <circle cx="358" cy="402" r="10" fill="#15171a"/>
+  <circle cx="442" cy="402" r="23" fill="#e9e3d7" stroke="#15171a" stroke-width="3"/>
+  <circle cx="442" cy="402" r="10" fill="#15171a"/>
+
+  <path d="M690 470c3 12 8 17 20 20-12 3-17 8-20 20-3-12-8-17-20-20 12-3 17-8 20-20z" fill="#15171a"/>
+  <path d="M96 420c2 8 5 11 13 13-8 2-11 5-13 13-2-8-5-11-13-13 8-2 11-5 13-13z" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+</svg>

@@ -1,0 +1,251 @@
+/* ──────────────────────────────────────────────────────────────────
+   LIGHTBOX — and the frame button that opens it.
+
+   The lightbox sits on its own dark ground whatever the section's
+   theme, so its colours are fixed rather than taken from the page.
+   ────────────────────────────────────────────────────────────────── */
+
+/* Pictures can't be dragged out, picked up as a text selection, or
+   long-pressed for the "save image" sheet on iPhones. */
+.zoom img,
+.lightbox__img {
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* ── The frame as a button ──────────────────────────────────────── */
+.zoom {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+/* A clear layer over the picture: a right-click lands on this, which
+   has no image to save. It also carries the focus ring, on top of the
+   picture where the frame's rounded clip can't hide it. */
+.zoom::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.zoom:focus-visible {
+  outline: none;
+}
+
+.zoom:focus-visible::after {
+  box-shadow: inset 0 0 0 3px var(--signal);
+}
+
+.zoom__mark {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(239, 235, 227, 0.35);
+  border-radius: 50%;
+  background: rgba(18, 20, 23, 0.55);
+  color: #f3efe7;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.zoom:hover .zoom__mark,
+.zoom:focus-visible .zoom__mark {
+  border-color: transparent;
+  background: var(--signal);
+  color: var(--on-signal);
+}
+
+.zoom__mark svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── The lightbox ───────────────────────────────────────────────── */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 4.5rem clamp(1rem, 6vw, 6rem) clamp(1.25rem, 3vw, 2rem);
+  border: 0;
+  background: transparent;
+  color: #f3efe7;
+  overflow: hidden;
+  /* Sideways drags are swipes; pinching still zooms the page. */
+  touch-action: pan-y pinch-zoom;
+}
+
+.lightbox[open] {
+  display: grid;
+  place-items: center;
+  animation: lightbox-in 0.35s var(--ease-out);
+}
+
+/* Custom properties don't reach ::backdrop everywhere yet, so its
+   colour is spelled out. */
+.lightbox::backdrop {
+  background: rgba(10, 11, 13, 0.9);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.lightbox[open]::backdrop {
+  animation: lightbox-fade 0.35s ease-out;
+}
+
+.lightbox__figure {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.lightbox__frame {
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.8);
+  animation: lightbox-fade 0.35s ease-out;
+}
+
+/* The same clear layer as on the frame. */
+.lightbox__frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.lightbox__img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 1600px);
+  /* The screen, less the padding and a line or two of caption. */
+  max-height: calc(100dvh - 11rem);
+}
+
+.lightbox__caption {
+  max-width: 62ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  text-align: center;
+  color: rgba(243, 239, 231, 0.78);
+  text-wrap: pretty;
+}
+
+.lightbox__count {
+  margin-right: 0.75rem;
+  font: 500 0.72rem/1 var(--mono);
+  letter-spacing: 0.14em;
+  color: var(--signal);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+.lightbox__btn {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 1px solid rgba(239, 235, 227, 0.3);
+  border-radius: 50%;
+  background: rgba(30, 32, 36, 0.7);
+  color: #f3efe7;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.lightbox__btn:hover,
+.lightbox__btn:focus-visible {
+  border-color: transparent;
+  background: var(--signal);
+  color: var(--on-signal);
+  outline: none;
+}
+
+.lightbox__btn svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lightbox__close {
+  top: 1rem;
+  right: 1rem;
+}
+
+.lightbox__arrow {
+  top: 50%;
+  margin-top: -1.5rem;
+}
+
+.lightbox__arrow--prev {
+  left: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.lightbox__arrow--next {
+  right: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.lightbox__arrow--next svg {
+  transform: scaleX(-1);
+}
+
+@keyframes lightbox-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes lightbox-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lightbox[open],
+  .lightbox[open]::backdrop,
+  .lightbox__frame {
+    animation: none;
+  }
+
+  .zoom__mark,
+  .lightbox__btn {
+    transition: none;
+  }
+}

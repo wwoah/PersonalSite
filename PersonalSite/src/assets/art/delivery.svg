@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#15171a" stroke-width="1" opacity=".08"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="420" fill="#e9e3d7"/>
+  <rect width="640" height="420" fill="url(#grid)"/>
+
+  <!-- branch graph -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 196H580" stroke="#15171a" stroke-width="4"/>
+    <path d="M150 196c40 0 40-76 90-76h150c50 0 50 76 90 76" stroke="#ff5a1f" stroke-width="4"/>
+    <path d="M250 196c30 0 30 66 70 66h40c40 0 40-66 70-66" stroke="#15171a" stroke-width="3" stroke-dasharray="1 10" opacity=".55"/>
+  </g>
+  <g stroke="#15171a" stroke-width="3">
+    <circle cx="80" cy="196" r="12" fill="#f8f6f1"/>
+    <circle cx="150" cy="196" r="12" fill="#f8f6f1"/>
+    <circle cx="250" cy="120" r="12" fill="#ff5a1f"/>
+    <circle cx="320" cy="120" r="12" fill="#ff5a1f"/>
+    <circle cx="390" cy="120" r="12" fill="#ff5a1f"/>
+    <circle cx="300" cy="196" r="12" fill="#f8f6f1"/>
+    <circle cx="340" cy="262" r="9" fill="#f8f6f1" opacity=".7"/>
+    <circle cx="480" cy="196" r="15" fill="#15171a"/>
+  </g>
+  <path d="M473 196l5 5 9-10" fill="none" stroke="#f8f6f1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- pipeline -->
+  <g transform="translate(60 316)">
+    <g stroke="#15171a" stroke-width="2">
+      <rect x="3" y="4" width="110" height="44" rx="22" fill="#15171a"/>
+      <rect width="110" height="44" rx="22" fill="#f8f6f1"/>
+      <rect x="133" y="4" width="110" height="44" rx="22" fill="#15171a"/>
+      <rect x="130" width="110" height="44" rx="22" fill="#f8f6f1"/>
+      <rect x="263" y="4" width="110" height="44" rx="22" fill="#15171a"/>
+      <rect x="260" width="110" height="44" rx="22" fill="#f8f6f1"/>
+      <rect x="393" y="4" width="130" height="44" rx="22" fill="#15171a"/>
+      <rect x="390" width="130" height="44" rx="22" fill="#ff5a1f"/>
+    </g>
+    <g fill="#15171a">
+      <circle cx="24" cy="22" r="7" opacity=".85"/><rect x="38" y="18" width="52" height="8" rx="4" opacity=".35"/>
+      <circle cx="154" cy="22" r="7" opacity=".85"/><rect x="168" y="18" width="52" height="8" rx="4" opacity=".35"/>
+      <circle cx="284" cy="22" r="7" opacity=".85"/><rect x="298" y="18" width="52" height="8" rx="4" opacity=".35"/>
+      <rect x="436" y="18" width="62" height="8" rx="4"/>
+    </g>
+    <path d="M409 22l5 5 9-10" fill="none" stroke="#15171a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M114 22h12M244 22h12M374 22h12" stroke="#15171a" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- review bubble -->
+  <g transform="translate(436 40)">
+    <path d="M5 6h140a14 14 0 0 1 14 14v38a14 14 0 0 1-14 14H50l-18 16 2-16H19A14 14 0 0 1 5 58V20A14 14 0 0 1 19 6z" fill="#15171a"/>
+    <path d="M14 0h140a14 14 0 0 1 14 14v38a14 14 0 0 1-14 14H45l-18 16 2-16H14A14 14 0 0 1 0 52V14A14 14 0 0 1 14 0z" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+    <rect x="16" y="18" width="90" height="8" rx="4" fill="#15171a" opacity=".35"/>
+    <rect x="16" y="34" width="64" height="8" rx="4" fill="#15171a" opacity=".35"/>
+    <circle cx="140" cy="33" r="13" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+    <path d="M134 33l4 4 8-8" fill="none" stroke="#15171a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

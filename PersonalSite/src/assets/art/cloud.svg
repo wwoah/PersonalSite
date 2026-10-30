@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#15171a" stroke-width="1" opacity=".08"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="420" fill="#e9e3d7"/>
+  <rect width="640" height="420" fill="url(#grid)"/>
+
+  <!-- cloud -->
+  <g transform="translate(206 34)">
+    <path d="M62 120h126a46 46 0 0 0 4-92 64 64 0 0 0-120-8 52 52 0 0 0-10 100z" transform="translate(6 8)" fill="#15171a"/>
+    <path d="M62 120h126a46 46 0 0 0 4-92 64 64 0 0 0-120-8 52 52 0 0 0-10 100z" fill="#f8f6f1" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="128" cy="70" r="26" fill="#ff5a1f" stroke="#15171a" stroke-width="3"/>
+    <path d="M128 84V58m-11 11 11-11 11 11" fill="none" stroke="#15171a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- links down to the machines -->
+  <g fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round">
+    <path d="M300 162c0 40-110 30-110 70"/>
+    <path d="M334 162v70"/>
+    <path d="M368 162c0 40 110 30 110 70"/>
+  </g>
+
+  <!-- server rack -->
+  <g transform="translate(110 232)">
+    <rect x="5" y="6" width="160" height="150" rx="12" fill="#15171a"/>
+    <rect width="160" height="150" rx="12" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5"/>
+    <g stroke="#15171a" stroke-width="2">
+      <rect x="14" y="14" width="132" height="34" rx="7" fill="#e9e3d7"/>
+      <rect x="14" y="58" width="132" height="34" rx="7" fill="#e9e3d7"/>
+      <rect x="14" y="102" width="132" height="34" rx="7" fill="#e9e3d7"/>
+    </g>
+    <g fill="#15171a" opacity=".35">
+      <rect x="26" y="27" width="56" height="8" rx="4"/>
+      <rect x="26" y="71" width="56" height="8" rx="4"/>
+      <rect x="26" y="115" width="56" height="8" rx="4"/>
+    </g>
+    <circle cx="118" cy="31" r="6" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+    <circle cx="132" cy="31" r="6" fill="#15171a"/>
+    <circle cx="118" cy="75" r="6" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+    <circle cx="132" cy="75" r="6" fill="#15171a"/>
+    <circle cx="118" cy="119" r="6" fill="#15171a"/>
+    <circle cx="132" cy="119" r="6" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+  </g>
+
+  <!-- containers -->
+  <g transform="translate(286 236)">
+    <g stroke="#15171a" stroke-width="2.5">
+      <rect x="4" y="6" width="92" height="44" rx="8" fill="#15171a"/>
+      <rect width="92" height="44" rx="8" fill="#ff5a1f"/>
+      <rect x="4" y="56" width="92" height="44" rx="8" fill="#15171a"/>
+      <rect y="50" width="92" height="44" rx="8" fill="#f8f6f1"/>
+      <rect x="4" y="106" width="92" height="44" rx="8" fill="#15171a"/>
+      <rect y="100" width="92" height="44" rx="8" fill="#f8f6f1"/>
+    </g>
+    <g stroke="#15171a" stroke-width="2" opacity=".55">
+      <path d="M23 10v24M46 10v24M69 10v24M23 60v24M46 60v24M69 60v24M23 110v24M46 110v24M69 110v24"/>
+    </g>
+  </g>
+
+  <!-- uptime card -->
+  <g transform="translate(424 248)">
+    <rect x="5" y="6" width="120" height="104" rx="14" fill="#15171a"/>
+    <rect width="120" height="104" rx="14" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5"/>
+    <path d="M14 70l16-10 14 8 18-26 16 12 16-22 12 8" fill="none" stroke="#ff5a1f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="14" y="16" width="46" height="8" rx="4" fill="#15171a" opacity=".35"/>
+    <circle cx="98" cy="20" r="9" fill="#15171a"/>
+    <path d="M94 20l3 3 6-6" fill="none" stroke="#f8f6f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="14" y="84" width="70" height="8" rx="4" fill="#15171a" opacity=".2"/>
+  </g>
+</svg>

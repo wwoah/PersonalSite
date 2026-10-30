@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" fill="none" stroke="#15171a" stroke-width="1" opacity=".08"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0l10 5-10 5z" fill="#15171a"/>
+    </marker>
+  </defs>
+  <rect width="640" height="420" fill="#e9e3d7"/>
+  <rect width="640" height="420" fill="url(#grid)"/>
+  <g transform="translate(-16 0)">
+
+  <!-- connections -->
+  <path d="M168 178C230 120 262 120 300 150" fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M300 268C262 300 222 300 170 252" fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M410 178C452 136 482 136 516 160" fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M516 270C482 300 450 300 412 262" fill="none" stroke="#15171a" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" marker-end="url(#arrow)"/>
+
+  <!-- packets in flight -->
+  <rect x="216" y="128" width="30" height="18" rx="5" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+  <rect x="210" y="282" width="30" height="18" rx="5" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+  <rect x="452" y="134" width="30" height="18" rx="5" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+  <rect x="448" y="284" width="30" height="18" rx="5" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+
+  <!-- client: a phone + browser -->
+  <g transform="translate(56 140)">
+    <rect x="5" y="6" width="112" height="140" rx="14" fill="#15171a"/>
+    <rect width="112" height="140" rx="14" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+    <path d="M0 28h112" stroke="#15171a" stroke-width="2"/>
+    <circle cx="16" cy="14" r="4" fill="#ff5a1f"/>
+    <circle cx="30" cy="14" r="4" fill="#15171a" opacity=".35"/>
+    <rect x="14" y="42" width="60" height="9" rx="4.5" fill="#15171a"/>
+    <rect x="14" y="58" width="84" height="7" rx="3.5" fill="#15171a" opacity=".25"/>
+    <rect x="14" y="72" width="70" height="7" rx="3.5" fill="#15171a" opacity=".25"/>
+    <rect x="14" y="98" width="52" height="22" rx="6" fill="#ff5a1f"/>
+  </g>
+
+  <!-- API: server stack with braces -->
+  <g transform="translate(300 118)">
+    <rect x="5" y="6" width="110" height="190" rx="14" fill="#15171a"/>
+    <rect width="110" height="190" rx="14" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+    <path d="M0 62h110M0 126h110" stroke="#15171a" stroke-width="2"/>
+    <circle cx="20" cy="31" r="5" fill="#ff5a1f"/>
+    <circle cx="20" cy="95" r="5" fill="#15171a" opacity=".35"/>
+    <circle cx="20" cy="159" r="5" fill="#15171a" opacity=".35"/>
+    <rect x="36" y="27" width="56" height="8" rx="4" fill="#15171a" opacity=".3"/>
+    <rect x="36" y="155" width="56" height="8" rx="4" fill="#15171a" opacity=".3"/>
+    <!-- { } -->
+    <path d="M48 80c-8 0-8 4-8 10s0 5-6 5c6 0 6 0 6 5s0 10 8 10" fill="none" stroke="#15171a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M62 80c8 0 8 4 8 10s0 5 6 5c-6 0-6 0-6 5s0 10-8 10" fill="none" stroke="#15171a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- database -->
+  <g transform="translate(516 140)">
+    <path d="M5 26v100c0 14 26 24 58 24s58-10 58-24V26" fill="#15171a"/>
+    <path d="M0 20v100c0 14 26 24 58 24s58-10 58-24V20" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+    <ellipse cx="58" cy="20" rx="58" ry="20" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+    <path d="M0 54c0 14 26 24 58 24s58-10 58-24M0 88c0 14 26 24 58 24s58-10 58-24" fill="none" stroke="#15171a" stroke-width="2" opacity=".5"/>
+  </g>
+  </g>
+</svg>

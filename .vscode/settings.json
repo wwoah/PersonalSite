@@ -1,0 +1,8 @@
+{
+  // dist/ is Vite's build output: minified copies of src/ that
+  // `npm run build` regenerates. Hidden so it isn't mistaken for the
+  // code you edit. Delete this line to see it in the Explorer again.
+  "files.exclude": {
+    "**/dist": true
+  }
+}

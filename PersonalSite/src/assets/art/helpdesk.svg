@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420">
+  <defs>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#15171a" opacity=".16"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="420" fill="#e9e3d7"/>
+  <rect width="640" height="420" fill="url(#dots)"/>
+
+  <!-- laptop being helped remotely -->
+  <g transform="translate(250 150)">
+    <path d="M10 14h250a12 12 0 0 1 12 12v150H-2V26A12 12 0 0 1 10 14z" transform="translate(6 8)" fill="#15171a"/>
+    <path d="M10 14h250a12 12 0 0 1 12 12v150H-2V26A12 12 0 0 1 10 14z" fill="#f8f6f1" stroke="#15171a" stroke-width="3"/>
+    <rect x="12" y="28" width="246" height="136" rx="6" fill="#e9e3d7" stroke="#15171a" stroke-width="2"/>
+    <path d="M-30 176h330l-14 26H-16z" fill="#f8f6f1" stroke="#15171a" stroke-width="3" stroke-linejoin="round"/>
+    <!-- a dialog on screen, being fixed -->
+    <rect x="58" y="52" width="154" height="88" rx="10" fill="#f8f6f1" stroke="#15171a" stroke-width="2"/>
+    <rect x="74" y="68" width="80" height="8" rx="4" fill="#15171a" opacity=".4"/>
+    <rect x="74" y="84" width="110" height="7" rx="3.5" fill="#15171a" opacity=".2"/>
+    <rect x="132" y="108" width="64" height="20" rx="6" fill="#ff5a1f" stroke="#15171a" stroke-width="2"/>
+    <!-- remote cursor -->
+    <g transform="translate(176 118) rotate(-10)">
+      <path d="M0 0v34l9-8 7 15 7-3-7-15 12-1z" fill="#15171a" stroke="#f8f6f1" stroke-width="2.5" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- headset -->
+  <g transform="translate(70 120)" fill="none" stroke="#15171a" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 92V70a56 56 0 0 1 112 0v22" stroke-width="10"/>
+    <rect x="-2" y="78" width="34" height="56" rx="14" fill="#ff5a1f" stroke-width="3"/>
+    <rect x="108" y="78" width="34" height="56" rx="14" fill="#ff5a1f" stroke-width="3"/>
+    <path d="M125 134c0 30-24 44-52 44" stroke-width="6"/>
+    <rect x="56" y="168" width="26" height="18" rx="9" fill="#15171a" stroke-width="3"/>
+  </g>
+
+  <!-- the question -->
+  <g transform="translate(80 30)">
+    <path d="M14 0h150a14 14 0 0 1 14 14v36a14 14 0 0 1-14 14H54l-18 16 2-16H14A14 14 0 0 1 0 50V14A14 14 0 0 1 14 0z" transform="translate(5 6)" fill="#15171a"/>
+    <path d="M14 0h150a14 14 0 0 1 14 14v36a14 14 0 0 1-14 14H54l-18 16 2-16H14A14 14 0 0 1 0 50V14A14 14 0 0 1 14 0z" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5"/>
+    <rect x="18" y="18" width="104" height="9" rx="4.5" fill="#15171a" opacity=".35"/>
+    <rect x="18" y="35" width="70" height="9" rx="4.5" fill="#15171a" opacity=".35"/>
+    <circle cx="150" cy="31" r="13" fill="#15171a"/>
+    <path d="M146 27a5 5 0 1 1 6 5v3" fill="none" stroke="#f8f6f1" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="152" cy="40" r="1.8" fill="#f8f6f1"/>
+  </g>
+
+  <!-- the answer -->
+  <g transform="translate(380 34)">
+    <path d="M14 0h178a14 14 0 0 1 14 14v40a14 14 0 0 1-14 14h-30l2 16-18-16H14A14 14 0 0 1 0 54V14A14 14 0 0 1 14 0z" transform="translate(5 6)" fill="#15171a"/>
+    <path d="M14 0h178a14 14 0 0 1 14 14v40a14 14 0 0 1-14 14h-30l2 16-18-16H14A14 14 0 0 1 0 54V14A14 14 0 0 1 14 0z" fill="#ff5a1f" stroke="#15171a" stroke-width="2.5"/>
+    <circle cx="30" cy="34" r="14" fill="#f8f6f1" stroke="#15171a" stroke-width="2.5"/>
+    <path d="M23 34l5 5 10-10" fill="none" stroke="#15171a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="56" y="22" width="118" height="9" rx="4.5" fill="#15171a" opacity=".55"/>
+    <rect x="56" y="39" width="84" height="9" rx="4.5" fill="#15171a" opacity=".55"/>
+  </g>
+</svg>
