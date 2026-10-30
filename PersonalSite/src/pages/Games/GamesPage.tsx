@@ -34,7 +34,7 @@ import "./Games.css";
    list of them.
    ────────────────────────────────────────────────────────────────── */
 
-const MAILTO = `mailto:${PROFILE.email}?subject=${encodeURIComponent("Your games")}`;
+const SUBJECT = "Your games";
 const num = (i: number) => String(i + 1).padStart(2, "0");
 
 /** Scroll to a game and put it in the address bar, so the link can be shared. */
@@ -392,7 +392,7 @@ function GamesPage() {
 
   return (
     <div ref={root} className="games-page">
-      <PageBar back={{ to: "/", label: "Portfolio" }} mailto={MAILTO} />
+      <PageBar back={{ to: "/", label: "Portfolio" }} subject={SUBJECT} />
 
       <SmoothScroll>
         <main className="games" data-theme="ink">
@@ -400,7 +400,7 @@ function GamesPage() {
 
           {GAMES_IN_PROGRESS ? (
             <section className="games-wip" aria-label="Games">
-              <WorkInProgress title={GAMES_PAGE.wip.title} note={GAMES_PAGE.wip.note} mailto={MAILTO} />
+              <WorkInProgress title={GAMES_PAGE.wip.title} note={GAMES_PAGE.wip.note} subject={SUBJECT} />
             </section>
           ) : games.length > 0 ? (
             <section className="games__list" aria-label="Games">
@@ -418,7 +418,7 @@ function GamesPage() {
             </Decode>
           )}
 
-          <PageOutro title={GAMES_PAGE.outroTitle} intro={GAMES_PAGE.outroIntro} mailto={MAILTO} />
+          <PageOutro title={GAMES_PAGE.outroTitle} intro={GAMES_PAGE.outroIntro} subject={SUBJECT} />
         </main>
       </SmoothScroll>
     </div>

@@ -5,6 +5,7 @@ import { scrollToSection } from "../anim/scroll";
 import { HAS_GAMES_PAGE, PROFILE, SECTIONS } from "../content";
 import TransitionLink from "./transition/TransitionLink";
 import AccentPicker from "./AccentPicker";
+import EmailButton from "./EmailButton";
 import "./SiteNav.css";
 
 /* ──────────────────────────────────────────────────────────────────
@@ -349,7 +350,7 @@ function SiteNav() {
           ))}
         </ol>
         <div className="menu__foot">
-          <a href={`mailto:${PROFILE.email}`}>{PROFILE.email}</a>
+          <EmailButton>{PROFILE.email}</EmailButton>
           {HAS_GAMES_PAGE && (
             <TransitionLink to="/games" label="Games" onClick={() => setOpen(false)}>
               See my games →

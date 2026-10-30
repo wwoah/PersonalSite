@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Decode from "./Decode";
+import EmailButton from "./EmailButton";
 import { rich } from "./rich";
 import { WORK_IN_PROGRESS } from "../content";
 import "./WorkInProgress.css";
@@ -20,8 +21,8 @@ interface WorkInProgressProps {
   /** Wrap words in *asterisks* to set them in the italic accent. */
   title?: string;
   note?: string;
-  /** Where "Ask me about it" goes: a mailto: link. */
-  mailto: string;
+  /** The subject of the email "Ask me about it" starts. */
+  subject: string;
   /** What's being worked on, shown blurred behind the note. */
   children?: ReactNode;
   /** Added to the panel, for a page to fit it to its own layout. */
@@ -34,7 +35,7 @@ const TAPE = Array.from({ length: 8 }, (_, i) => i);
 function WorkInProgress({
   title = WORK_IN_PROGRESS.title,
   note = WORK_IN_PROGRESS.note,
-  mailto,
+  subject,
   children,
   className,
 }: WorkInProgressProps) {
@@ -70,9 +71,9 @@ function WorkInProgress({
           <span className="wip__cursor" data-ascii="skip" aria-hidden="true" />
         </h3>
         <p className="wip__note">{note}</p>
-        <a className="btn wip__ask" href={mailto} data-ascii="fade">
+        <EmailButton className="btn wip__ask" subject={subject} data-ascii="fade">
           {WORK_IN_PROGRESS.ask} <span className="btn__arrow">↗</span>
-        </a>
+        </EmailButton>
       </Decode>
     </div>
   );

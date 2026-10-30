@@ -31,8 +31,8 @@ import "./Skills.css";
    ────────────────────────────────────────────────────────────────── */
 
 const num = (i: number) => String(i + 1).padStart(2, "0");
-const mailto = (skill: Skill) =>
-  `mailto:${PROFILE.email}?subject=${encodeURIComponent(`About: ${skill.title}`)}`;
+/** The subject line of every email started from a skill's page. */
+const subject = (skill: Skill) => `About: ${skill.title}`;
 
 /* ──────────────────────────────────────────────────────────────────
    HERO — the tile, at full size
@@ -115,7 +115,7 @@ function Highlights({ skill }: { skill: Skill }) {
   /* In progress: the panel goes over whatever highlights there are so
      far, or over placeholders when there are none yet. */
   let body = list || <EmptyNotice skill={skill} />;
-  if (skill.inProgress) body = <WorkInProgress mailto={mailto(skill)}>{list || undefined}</WorkInProgress>;
+  if (skill.inProgress) body = <WorkInProgress subject={subject(skill)}>{list || undefined}</WorkInProgress>;
 
   return (
     <section className="highlights" aria-labelledby="highlights-title">
@@ -361,7 +361,7 @@ function SkillPage({ skill }: { skill: Skill }) {
 
   return (
     <div ref={root} className="skill-page">
-      <PageBar back={{ to: back, label: "Skills" }} mailto={mailto(skill)} />
+      <PageBar back={{ to: back, label: "Skills" }} subject={subject(skill)} />
 
       <SmoothScroll>
         <main className="skill" data-theme="paper">
@@ -371,7 +371,7 @@ function SkillPage({ skill }: { skill: Skill }) {
           <PageOutro
             title={SKILL_PAGE.outroTitle}
             intro={SKILL_PAGE.outroIntro}
-            mailto={mailto(skill)}
+            subject={subject(skill)}
             back={back}
           />
         </main>

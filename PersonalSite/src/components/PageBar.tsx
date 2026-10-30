@@ -1,6 +1,7 @@
 import { PROFILE } from "../content";
 import TransitionLink from "./transition/TransitionLink";
 import AccentPicker from "./AccentPicker";
+import EmailButton from "./EmailButton";
 import "./SiteNav.css";
 import "./PageBar.css";
 
@@ -11,11 +12,11 @@ import "./PageBar.css";
 interface PageBarProps {
   /** Where the back link goes, and what it says. */
   back: { to: string; label: string };
-  /** The "Let's talk" button's mailto: link. */
-  mailto: string;
+  /** The subject of the email "Let's talk" starts. */
+  subject: string;
 }
 
-function PageBar({ back, mailto }: PageBarProps) {
+function PageBar({ back, subject }: PageBarProps) {
   return (
     <header className="nav page-bar">
       <TransitionLink to="/" label="Portfolio" className="nav__brand">
@@ -29,9 +30,9 @@ function PageBar({ back, mailto }: PageBarProps) {
           <span className="nav__games-icon" aria-hidden="true" />
           {back.label}
         </TransitionLink>
-        <a className="btn btn--small nav__cta" href={mailto}>
+        <EmailButton className="btn btn--small nav__cta" subject={subject}>
           Let's talk
-        </a>
+        </EmailButton>
       </div>
     </header>
   );

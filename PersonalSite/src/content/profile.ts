@@ -32,6 +32,18 @@ export const PROFILE = {
   covers: "Software · AI · Cloud · Hardware · Support",
 };
 
+/* The box every email button opens. A bare mailto: link does nothing,
+   or opens a blank window, on a computer with no mail app set up, and
+   plenty of visitors won't have one. So the box offers the address to
+   copy, and Gmail or Outlook in the browser, as well as the mail app. */
+export const EMAIL = {
+  title: "Email me",
+  lead: "Copy the address, or start an email in:",
+  copy: "Copy",
+  copied: "Copied",
+  app: "Mail app",
+};
+
 /* The links at the foot of the contact section. */
 export const SOCIALS = [
   { label: "GitHub", href: "https://github.com/wwoah" },

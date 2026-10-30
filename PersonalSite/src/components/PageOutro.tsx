@@ -1,5 +1,6 @@
 import { PROFILE } from "../content";
 import Decode from "./Decode";
+import EmailButton from "./EmailButton";
 import TransitionLink from "./transition/TransitionLink";
 import { rich } from "./rich";
 import "./PageOutro.css";
@@ -12,21 +13,22 @@ interface PageOutroProps {
   /** Wrap words in *asterisks* to set them in italics. */
   title: string;
   intro: string;
-  mailto: string;
+  /** The subject of the email "Email me" starts. */
+  subject: string;
   /** Where "Back to the portfolio" lands. */
   back?: string;
 }
 
-function PageOutro({ title, intro, mailto, back = "/" }: PageOutroProps) {
+function PageOutro({ title, intro, subject, back = "/" }: PageOutroProps) {
   return (
     <footer className="page-outro" data-theme="signal">
       <Decode className="page-outro__inner">
         <h2 className="page-outro__title">{rich(title)}</h2>
         <p className="page-outro__intro">{intro}</p>
         <div className="page-outro__actions">
-          <a className="btn" href={mailto} data-ascii="fade">
+          <EmailButton className="btn" subject={subject} data-ascii="fade">
             Email me <span className="btn__arrow">↗</span>
-          </a>
+          </EmailButton>
           <TransitionLink to={back} label="Portfolio" className="btn btn--ghost" data-ascii="fade">
             Back to the portfolio
           </TransitionLink>

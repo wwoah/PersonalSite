@@ -10,6 +10,7 @@ import Decode from "../components/Decode";
 import Art from "../components/Art";
 import WorkInProgress from "../components/WorkInProgress";
 import Lightbox, { ZoomButton } from "../components/Lightbox";
+import EmailButton from "../components/EmailButton";
 import TransitionLink from "../components/transition/TransitionLink";
 import { rich } from "../components/rich";
 import { skillPath } from "../routes";
@@ -52,9 +53,6 @@ const jump = (id: string) => (e: MouseEvent) => {
   e.preventDefault();
   scrollToSection(id);
 };
-
-/** An email to me with the subject already filled in. */
-const ask = (subject: string) => `mailto:${PROFILE.email}?subject=${encodeURIComponent(subject)}`;
 
 /* ──────────────────────────────────────────────────────────────────
    HERO
@@ -600,7 +598,7 @@ function AiGroup() {
         <h3 className="caps-group__title">{AI.label}</h3>
         <p className="caps-group__note">{AI.note}</p>
       </div>
-      <WorkInProgress className="ai__wip" title={AI.wip.title} note={AI.wip.note} mailto={ask(`About: ${AI.label}`)}>
+      <WorkInProgress className="ai__wip" title={AI.wip.title} note={AI.wip.note} subject={`About: ${AI.label}`}>
         <AiCards anchors={false} />
       </WorkInProgress>
     </div>
@@ -679,10 +677,10 @@ function Services() {
               <span className="service__num">{String(i + 1).padStart(2, "0")}</span>
               <div className="service__body">
                 <h3 className="service__title">
-                  <a className="service__link" href={ask(`Help with: ${s.title}`)}>
+                  <EmailButton className="service__link" subject={`Help with: ${s.title}`}>
                     {s.title}
                     <span className="sr-only"> — email me about this</span>
-                  </a>
+                  </EmailButton>
                 </h3>
                 <p className="service__desc">{s.desc}</p>
                 <ul className="service__tags" aria-label="Involves">
@@ -715,9 +713,9 @@ function Services() {
               </li>
             ))}
           </ol>
-          <a className="btn" href={ask("IT help request")} data-ascii="fade">
+          <EmailButton className="btn" subject="IT help request" data-ascii="fade">
             Tell me what you need <span className="btn__arrow">→</span>
-          </a>
+          </EmailButton>
           <p className="process__note">
             Small businesses and individuals both welcome. I'll come to you anywhere around the
             Bay, or help remotely.
@@ -848,6 +846,7 @@ function Interests() {
    ────────────────────────────────────────────────────────────────── */
 function Contact() {
   const [copied, setCopied] = useState(false);
+  const address = useRef<HTMLSpanElement>(null);
 
   const copy = async () => {
     try {
@@ -855,7 +854,11 @@ function Contact() {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2200);
     } catch {
-      window.location.href = `mailto:${PROFILE.email}`;
+      /* No clipboard access: select the address, so Ctrl+C does it. */
+      const range = document.createRange();
+      if (address.current) range.selectNodeContents(address.current);
+      window.getSelection()?.removeAllRanges();
+      window.getSelection()?.addRange(range);
     }
   };
 
@@ -869,16 +872,16 @@ function Contact() {
       art={<div className="art-contours art-contours--contact" data-speed="0.9" />}
     >
       <Decode className="contact">
-        <a className="contact__email" href={`mailto:${PROFILE.email}`}>
-          {PROFILE.email}
-        </a>
+        <EmailButton className="contact__email">
+          <span ref={address}>{PROFILE.email}</span>
+        </EmailButton>
         <div className="contact__actions">
           <button type="button" className="btn" onClick={copy} data-ascii="fade">
             {copied ? "Copied to clipboard" : "Copy email"}
           </button>
-          <a className="btn btn--ghost" href={`mailto:${PROFILE.email}`} data-ascii="fade">
+          <EmailButton className="btn btn--ghost" data-ascii="fade">
             Write to me <span className="btn__arrow">↗</span>
-          </a>
+          </EmailButton>
         </div>
         <span className="sr-only" role="status">
           {copied ? "Email address copied" : ""}
