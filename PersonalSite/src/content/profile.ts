@@ -27,7 +27,7 @@ export const PROFILE = {
   resume: "/files/Phillip_Bishop_FullStack_Developer_Resume.pdf",
   headline: "Welcome to my website!",
   intro:
-    "Here you'll find information about my work, experience and what I find interesting. If you are employer or just curious, feel free to browse through my 'skills' section and see if I can help in any way.",
+    "Here you'll find information about my work, experience and what I find interesting. If you are an employer or just curious, feel free to browse through my 'skills' section and see if I can help in any way.",
   /* What the hero's footer row says at a glance. */
   covers: "Software · AI · Cloud · Hardware · Support",
 };
